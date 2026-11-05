@@ -38,7 +38,7 @@ function strike(game, h, inside) {
   const player = game.hero;
   if (player.alive && inside(player.position, player.radius * 0.5)) player.takeDamage(h.def.damage);
   for (const enemy of game.enemies) {
-    if (h.hit.has(enemy) || !enemy.canBeHit || !inside(enemy.position, enemy.radius * 0.5)) continue;
+    if (h.hit.has(enemy) || !enemy.canBeHit || enemy.airborne || !inside(enemy.position, enemy.radius * 0.5)) continue;
     h.hit.add(enemy);
     game.hazardHit(enemy, h.def.enemyDamage ?? h.def.damage, h.def.at[0], h.def.at[1]);
   }
@@ -148,7 +148,7 @@ const TYPES = {
       h.timer -= dt;
       if (h.state === 'armed') {
         h.lampMat.emissiveIntensity = 0.4 + (Math.sin(time * 3) + 1) * 0.5;
-        const stepped = [...(game.hero.alive ? [game.hero] : []), ...game.enemies.filter((e) => e.canBeHit)].some((a) => Math.hypot(a.position.x - x, a.position.z - z) <= MINE_TRIGGER);
+        const stepped = [...(game.hero.alive ? [game.hero] : []), ...game.enemies.filter((e) => e.canBeHit && !e.airborne)].some((a) => Math.hypot(a.position.x - x, a.position.z - z) <= MINE_TRIGGER);
         if (!stepped) return;
         h.state = 'fuse';
         h.timer = def.fuse;
@@ -234,7 +234,7 @@ const TYPES = {
       const player = game.hero;
       if (player.alive && Math.hypot(p.x - player.position.x, p.z - player.position.z) <= ARROW_HIT) { player.takeDamage(h.def.damage); return true; }
       for (const enemy of game.enemies) {
-        if (!enemy.canBeHit || Math.hypot(p.x - enemy.position.x, p.z - enemy.position.z) > ARROW_HIT) continue;
+        if (!enemy.canBeHit || enemy.airborne || Math.hypot(p.x - enemy.position.x, p.z - enemy.position.z) > ARROW_HIT) continue;
         game.hazardHit(enemy, h.def.enemyDamage ?? h.def.damage, p.x - h.dx, p.z - h.dz);
         return true;
       }

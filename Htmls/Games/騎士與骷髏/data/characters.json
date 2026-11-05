@@ -349,7 +349,13 @@
     "attackHitTime": 0.35,
     "radius": 0.45,
     "score": 25,
-    "coinDrop": { "type": "金幣", "count": [2, 3] }
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        2,
+        3
+      ]
+    }
   },
   "森林小熊": {
     "model": "森林小熊",
@@ -384,7 +390,13 @@
     "radius": 0.5,
     "stunTime": 0.25,
     "score": 45,
-    "coinDrop": { "type": "金幣", "count": [4, 5] }
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        4,
+        5
+      ]
+    }
   },
   "商店老闆": {
     "model": "商店老闆",
@@ -398,5 +410,805 @@
     "attackHitTime": 0.35,
     "radius": 0.5,
     "score": 10
+  },
+  "人型_咕嚕_白": {
+    "model": "人型_咕嚕_白",
+    "role": "enemy",
+    "scale": 0.85,
+    "hp": 1,
+    "moveSpeed": 4.2,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.1,
+    "attackHitTime": 0.35,
+    "radius": 0.4,
+    "score": 10,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        1,
+        1
+      ]
+    },
+    "flank": 35
+  },
+  "人型_咕嚕_綠": {
+    "model": "人型_咕嚕_綠",
+    "role": "enemy",
+    "scale": 0.85,
+    "hp": 2,
+    "moveSpeed": 2.4,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.8,
+    "attackHitTime": 0.35,
+    "radius": 0.42,
+    "score": 20,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        2,
+        3
+      ]
+    },
+    "ability": {
+      "type": "lob",
+      "range": 8,
+      "keep": 4.5,
+      "windup": 0.8,
+      "cooldown": 4.5,
+      "shot": {
+        "size": 0.24,
+        "flight": 0.9,
+        "radius": 1.3,
+        "damage": 1,
+        "color": "#7ddc4a",
+        "pool": {
+          "radius": 1.3,
+          "duration": 3.5,
+          "damage": 1,
+          "color": "#7ddc4a"
+        }
+      }
+    }
+  },
+  "人型_咕嚕王": {
+    "model": "人型_咕嚕王",
+    "role": "boss",
+    "scale": 1.4,
+    "hp": 45,
+    "moveSpeed": 2.4,
+    "attackDamage": 1,
+    "attackRange": 2.4,
+    "attackCooldown": 2.4,
+    "attackHitTime": 0.35,
+    "radius": 0.9,
+    "score": 500,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        25,
+        30
+      ]
+    },
+    "poise": true,
+    "boss": {
+      "name": "咕嚕王",
+      "skillEvery": 4.5,
+      "enrage": {
+        "at": 0.5,
+        "pace": 1.3
+      },
+      "skills": [
+        {
+          "type": "charge",
+          "damage": 2,
+          "distance": 14,
+          "width": 2,
+          "speed": 15,
+          "windup": 1,
+          "recover": 1.4
+        },
+        {
+          "type": "summon",
+          "enemy": "人型_咕嚕_白",
+          "count": 3,
+          "max": 5,
+          "windup": 0.9,
+          "recover": 0.8
+        },
+        {
+          "type": "rain",
+          "count": 3,
+          "scatter": 3.5,
+          "gap": 0.25,
+          "shot": {
+            "size": 0.24,
+            "flight": 0.9,
+            "radius": 1.3,
+            "damage": 1,
+            "color": "#7ddc4a",
+            "pool": {
+              "radius": 1.3,
+              "duration": 4,
+              "damage": 1,
+              "color": "#7ddc4a"
+            }
+          },
+          "windup": 0.9,
+          "recover": 1
+        }
+      ]
+    }
+  },
+  "人型_哥布林-1": {
+    "model": "人型_哥布林-1",
+    "role": "enemy",
+    "scale": 0.8,
+    "hp": 2,
+    "moveSpeed": 2.6,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.8,
+    "attackHitTime": 0.35,
+    "radius": 0.4,
+    "score": 20,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        2,
+        3
+      ]
+    },
+    "ability": {
+      "type": "shoot",
+      "range": 8.5,
+      "keep": 5.5,
+      "windup": 0.95,
+      "cooldown": 4,
+      "shot": {
+        "model": "飛鏢",
+        "modelScale": 0.42,
+        "modelRotation": [
+          -90,
+          0,
+          0
+        ],
+        "spin": 3,
+        "speed": 11,
+        "range": 11,
+        "width": 0.32,
+        "damage": 1,
+        "color": "#d7dde8",
+        "height": 1,
+        "count": 3,
+        "spread": 16
+      }
+    }
+  },
+  "人型_哥布林-2": {
+    "model": "人型_哥布林-2",
+    "role": "enemy",
+    "scale": 0.8,
+    "hp": 2,
+    "moveSpeed": 2.6,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.8,
+    "attackHitTime": 0.35,
+    "radius": 0.4,
+    "score": 20,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        2,
+        3
+      ]
+    },
+    "ability": {
+      "type": "shoot",
+      "range": 10,
+      "keep": 6,
+      "windup": 0.85,
+      "cooldown": 3,
+      "shot": {
+        "model": "飛鏢",
+        "modelScale": 0.42,
+        "modelRotation": [
+          -90,
+          0,
+          0
+        ],
+        "spin": 3,
+        "speed": 15,
+        "range": 13,
+        "width": 0.32,
+        "damage": 1,
+        "color": "#d7dde8",
+        "height": 1
+      }
+    }
+  },
+  "人型_哥布林-3": {
+    "model": "人型_哥布林-3",
+    "role": "enemy",
+    "scale": 0.82,
+    "hp": 2,
+    "moveSpeed": 2.4,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.8,
+    "attackHitTime": 0.35,
+    "radius": 0.4,
+    "score": 25,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        2,
+        3
+      ]
+    },
+    "ability": {
+      "type": "lob",
+      "range": 9,
+      "keep": 6,
+      "windup": 0.8,
+      "cooldown": 4.5,
+      "shot": {
+        "model": "火焰彈",
+        "modelScale": 0.55,
+        "modelGlow": 0.9,
+        "flight": 1.0,
+        "radius": 1.5,
+        "damage": 1,
+        "color": "#ff8a3d"
+      }
+    }
+  },
+  "人型_哥布林-4": {
+    "model": "人型_哥布林-4",
+    "role": "enemy",
+    "scale": 0.95,
+    "hp": 5,
+    "moveSpeed": 1.9,
+    "attackDamage": 1,
+    "attackRange": 1.6,
+    "attackCooldown": 2,
+    "attackHitTime": 0.35,
+    "radius": 0.55,
+    "score": 30,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        3,
+        4
+      ]
+    },
+    "stunTime": 0.25
+  },
+  "人型_哥布林王": {
+    "model": "人型_哥布林王",
+    "role": "boss",
+    "scale": 1.4,
+    "hp": 45,
+    "moveSpeed": 2.4,
+    "attackDamage": 1,
+    "attackRange": 2.4,
+    "attackCooldown": 2.4,
+    "attackHitTime": 0.35,
+    "radius": 0.9,
+    "score": 500,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        25,
+        30
+      ]
+    },
+    "poise": true,
+    "boss": {
+      "name": "哥布林王",
+      "skillEvery": 4.5,
+      "enrage": {
+        "at": 0.5,
+        "pace": 1.3
+      },
+      "skills": [
+        {
+          "type": "volley",
+          "count": 5,
+          "spread": 14,
+          "shot": {
+            "model": "飛鏢",
+            "modelScale": 0.42,
+            "modelRotation": [
+              -90,
+              0,
+              0
+            ],
+            "spin": 3,
+            "speed": 11,
+            "range": 11,
+            "width": 0.32,
+            "damage": 1,
+            "color": "#d7dde8",
+            "height": 1
+          },
+          "windup": 1,
+          "recover": 1
+        },
+        {
+          "type": "summon",
+          "enemy": "人型_哥布林-4",
+          "count": 2,
+          "max": 4,
+          "windup": 0.9,
+          "recover": 0.8
+        },
+        {
+          "type": "rain",
+          "count": 3,
+          "scatter": 3.5,
+          "gap": 0.3,
+          "shot": {
+            "model": "火焰彈",
+            "modelScale": 0.55,
+            "modelGlow": 0.9,
+            "flight": 1.0,
+            "radius": 1.5,
+            "damage": 1,
+            "color": "#ff8a3d"
+          },
+          "windup": 0.9,
+          "recover": 1
+        }
+      ]
+    }
+  },
+  "人型_日本巫女": {
+    "model": "人型_日本巫女",
+    "role": "enemy",
+    "scale": 0.8,
+    "hp": 3,
+    "moveSpeed": 2.2,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.8,
+    "attackHitTime": 0.35,
+    "radius": 0.42,
+    "score": 30,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        3,
+        4
+      ]
+    },
+    "ability": {
+      "type": "shoot",
+      "range": 11,
+      "keep": 7,
+      "windup": 1.0,
+      "cooldown": 3,
+      "shot": {
+        "model": "弓箭",
+        "modelScale": 1.5,
+        "speed": 16,
+        "range": 14,
+        "width": 0.3,
+        "damage": 1,
+        "color": "#ffe9a8",
+        "height": 1.1
+      }
+    }
+  },
+  "特殊_史萊姆": {
+    "model": "特殊_史萊姆",
+    "role": "enemy",
+    "scale": 0.75,
+    "hp": 2,
+    "moveSpeed": 1.8,
+    "attackDamage": 1,
+    "attackRange": 1.4,
+    "attackCooldown": 1.8,
+    "attackHitTime": 0.35,
+    "radius": 0.55,
+    "score": 20,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        1,
+        2
+      ]
+    },
+    "split": {
+      "into": "小史萊姆",
+      "count": 2,
+      "color": "#5ec8ff"
+    }
+  },
+  "特殊_紅火龍": {
+    "model": "特殊_紅火龍",
+    "role": "boss",
+    "scale": 1.7,
+    "hp": 55,
+    "moveSpeed": 2.4,
+    "attackDamage": 1,
+    "attackRange": 2.4,
+    "attackCooldown": 2.4,
+    "attackHitTime": 0.35,
+    "radius": 1.1,
+    "score": 500,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        25,
+        30
+      ]
+    },
+    "poise": true,
+    "boss": {
+      "name": "紅火龍",
+      "skillEvery": 4.5,
+      "enrage": {
+        "at": 0.5,
+        "pace": 1.3
+      },
+      "skills": [
+        {
+          "type": "soar",
+          "height": 4.5,
+          "duration": 6,
+          "every": 1.1,
+          "shot": {
+            "model": "火焰彈",
+            "modelScale": 0.55,
+            "modelGlow": 0.9,
+            "flight": 1.1,
+            "radius": 1.7,
+            "damage": 1,
+            "color": "#ff8a3d"
+          },
+          "windup": 0.8,
+          "recover": 1.8
+        },
+        {
+          "type": "volley",
+          "count": 3,
+          "spread": 18,
+          "shot": {
+            "model": "火球",
+            "modelScale": 0.75,
+            "modelRotation": [
+              -90,
+              0,
+              0
+            ],
+            "modelGlow": 0.9,
+            "speed": 10,
+            "range": 13,
+            "width": 0.45,
+            "damage": 1,
+            "color": "#ff8a3d",
+            "height": 1,
+            "trail": true
+          },
+          "windup": 1,
+          "recover": 1
+        },
+        {
+          "type": "charge",
+          "damage": 2,
+          "distance": 14,
+          "width": 2.2,
+          "speed": 15,
+          "windup": 1,
+          "recover": 1.4
+        },
+        {
+          "type": "summon",
+          "enemy": "特殊_綠龍",
+          "count": 1,
+          "max": 2,
+          "windup": 0.9,
+          "recover": 0.8
+        }
+      ]
+    }
+  },
+  "特殊_綠龍": {
+    "model": "特殊_綠龍",
+    "role": "enemy",
+    "scale": 1.05,
+    "hp": 4,
+    "moveSpeed": 3.2,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.8,
+    "attackHitTime": 0.35,
+    "radius": 0.8,
+    "score": 50,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        4,
+        6
+      ]
+    },
+    "fly": {
+      "height": 2.8,
+      "hover": 4.5,
+      "orbitSpeed": 0.5,
+      "swoop": {
+        "cooldown": 4.5,
+        "windup": 1.2,
+        "radius": 1.6,
+        "damage": 1,
+        "ground": 2.2
+      }
+    }
+  },
+  "特殊_綠龍2": {
+    "model": "特殊_綠龍2",
+    "role": "enemy",
+    "scale": 1.05,
+    "hp": 4,
+    "moveSpeed": 3.2,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.8,
+    "attackHitTime": 0.35,
+    "radius": 0.8,
+    "score": 55,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        4,
+        6
+      ]
+    },
+    "fly": {
+      "height": 2.8,
+      "hover": 6,
+      "orbitSpeed": 0.4,
+      "swoop": {
+        "cooldown": 7,
+        "windup": 1.2,
+        "radius": 1.6,
+        "damage": 1,
+        "ground": 2.2
+      }
+    },
+    "ability": {
+      "type": "shoot",
+      "range": 10,
+      "windup": 0.9,
+      "cooldown": 5,
+      "shot": {
+        "model": "火球",
+        "modelScale": 0.75,
+        "modelRotation": [
+          -90,
+          0,
+          0
+        ],
+        "modelGlow": 0.9,
+        "speed": 10,
+        "range": 13,
+        "width": 0.45,
+        "damage": 1,
+        "color": "#ff8a3d",
+        "height": 1,
+        "trail": true
+      }
+    }
+  },
+  "特殊_蛇妖-1": {
+    "model": "特殊_蛇妖-1",
+    "role": "enemy",
+    "scale": 1,
+    "hp": 3,
+    "moveSpeed": 1.8,
+    "attackDamage": 1,
+    "attackRange": 1.7,
+    "attackCooldown": 1.8,
+    "attackHitTime": 0.35,
+    "radius": 0.5,
+    "score": 35,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        3,
+        4
+      ]
+    },
+    "stunTime": 0.3,
+    "trail": {
+      "every": 3,
+      "pool": {
+        "radius": 0.9,
+        "duration": 4,
+        "damage": 1,
+        "color": "#7ddc4a"
+      }
+    }
+  },
+  "特殊_蛇妖王": {
+    "model": "特殊_蛇妖王",
+    "role": "boss",
+    "scale": 1.5,
+    "hp": 50,
+    "moveSpeed": 2.4,
+    "attackDamage": 1,
+    "attackRange": 2.4,
+    "attackCooldown": 2.4,
+    "attackHitTime": 0.35,
+    "radius": 1,
+    "score": 500,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        25,
+        30
+      ]
+    },
+    "poise": true,
+    "boss": {
+      "name": "蛇妖王",
+      "skillEvery": 4.5,
+      "enrage": {
+        "at": 0.5,
+        "pace": 1.3
+      },
+      "skills": [
+        {
+          "type": "rain",
+          "count": 4,
+          "scatter": 4,
+          "gap": 0.2,
+          "shot": {
+            "size": 0.24,
+            "flight": 0.9,
+            "radius": 1.3,
+            "damage": 1,
+            "color": "#7ddc4a",
+            "pool": {
+              "radius": 1.3,
+              "duration": 5,
+              "damage": 1,
+              "color": "#7ddc4a"
+            }
+          },
+          "windup": 1,
+          "recover": 1
+        },
+        {
+          "type": "volley",
+          "count": 5,
+          "spread": 15,
+          "shot": {
+            "size": 0.26,
+            "speed": 10,
+            "range": 12,
+            "width": 0.38,
+            "damage": 1,
+            "color": "#7ddc4a",
+            "trail": true
+          },
+          "windup": 1,
+          "recover": 1
+        },
+        {
+          "type": "summon",
+          "enemy": "特殊_史萊姆",
+          "count": 2,
+          "max": 4,
+          "windup": 0.9,
+          "recover": 0.8
+        }
+      ]
+    }
+  },
+  "獸型_山豬": {
+    "model": "獸型_山豬",
+    "role": "enemy",
+    "scale": 0.95,
+    "hp": 4,
+    "moveSpeed": 2.4,
+    "attackDamage": 1,
+    "attackRange": 1.7,
+    "attackCooldown": 2.2,
+    "attackHitTime": 0.35,
+    "radius": 0.6,
+    "score": 35,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        3,
+        5
+      ]
+    },
+    "stunTime": 0.3,
+    "ability": {
+      "type": "charge",
+      "range": 9,
+      "min": 3,
+      "windup": 0.9,
+      "distance": 11,
+      "speed": 13,
+      "width": 1.4,
+      "damage": 1,
+      "cooldown": 4.5,
+      "recover": 1
+    }
+  },
+  "獸型_野狗": {
+    "model": "獸型_野狗",
+    "role": "enemy",
+    "scale": 0.75,
+    "hp": 2,
+    "moveSpeed": 4.6,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.2,
+    "attackHitTime": 0.35,
+    "radius": 0.4,
+    "score": 15,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        1,
+        2
+      ]
+    },
+    "flank": 50
+  },
+  "獸型_黑貓": {
+    "model": "獸型_黑貓",
+    "role": "enemy",
+    "scale": 0.6,
+    "hp": 2,
+    "moveSpeed": 3,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1,
+    "attackHitTime": 0.35,
+    "radius": 0.38,
+    "score": 25,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        2,
+        3
+      ]
+    },
+    "ability": {
+      "type": "blink",
+      "range": 9,
+      "min": 3,
+      "windup": 0.6,
+      "behind": 1.6,
+      "cooldown": 5
+    }
+  },
+  "小史萊姆": {
+    "model": "特殊_史萊姆",
+    "role": "enemy",
+    "scale": 0.42,
+    "hp": 1,
+    "moveSpeed": 2.6,
+    "attackDamage": 1,
+    "attackRange": 1.1,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.32,
+    "score": 5,
+    "coinDrop": {
+      "type": "金幣",
+      "count": [
+        1,
+        1
+      ]
+    }
   }
 }

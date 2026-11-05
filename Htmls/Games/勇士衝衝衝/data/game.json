@@ -5,7 +5,11 @@
     "level01",
     "level02",
     "level03",
-    "level04"
+    "level04",
+    "level05",
+    "level06",
+    "level07",
+    "level08"
   ],
   "runSpeed": 7,
   "strafeSpeed": 10,
@@ -17,6 +21,7 @@
   "defaultDifficulty": "普通",
   "difficulties": {
     "簡單": {
+      "shotKillMult": 0.4,
       "desc": "加法、減法，數字 10 以內",
       "color": "#86efac",
       "enemyHpMult": 1,
@@ -43,6 +48,7 @@
       "mysteryChance": 0.25
     },
     "普通": {
+      "shotKillMult": 1,
       "desc": "加減乘除",
       "color": "#fbbf24",
       "enemyHpMult": 1.3,
@@ -77,6 +83,7 @@
       "mysteryChance": 0.35
     },
     "困難": {
+      "shotKillMult": 1.2,
       "desc": "兩個步驟的算式、數字更大",
       "color": "#f87171",
       "enemyHpMult": 2.0,

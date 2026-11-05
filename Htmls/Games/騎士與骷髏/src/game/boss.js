@@ -1,17 +1,16 @@
 // Boss：多了招式循環、地面預警、狂暴與畫面上方的血條。招式與數值都在 characters.json 的 boss。
-// 招式類型：slam 地面預警後砸下、charge 直線衝撞、summon 召喚小怪。新招式在 SKILLS 加一項。
+// 招式類型：slam 地面預警後砸下、charge 直線衝撞、summon 召喚小怪、
+//   volley 扇形射出一排（瞄準線）、rain 往玩家附近丟一串拋物線（落點紅圈，可留下毒池）、soar 飛上天一段時間往下丟火球。
+// 新招式在 SKILLS 加一項。預警圈、線的畫法在 enemy.js（一般敵人也用）。
 import * as THREE from 'three';
-import { Enemy } from './enemy.js';
+import { Enemy, fanDirections } from './enemy.js';
 
-const WARNING_COLOR = 0xff3b2f;
-const WARNING_HEIGHT = 0.07;
+const SOAR_CLIMB = 3;
+const SOAR_FOLLOW = 0.6;
 const SLAM_COLOR = '#ff5a3c';
 const SUMMON_SPREAD = 3;
 const CHARGE_HIT_MARGIN = 0.2;
 const BLOCKED_RATIO = 0.3;
-
-const circleGeometry = new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2);
-const lineGeometry = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
 
 const SKILLS = {
   slam: {
@@ -56,6 +55,45 @@ const SKILLS = {
     },
   },
 
+  volley: {
+    start(boss, skill, player) {
+      const dx = player.position.x - boss.position.x, dz = player.position.z - boss.position.z;
+      const dist = Math.hypot(dx, dz) || 1;
+      boss.faceToward(dx, dz, Infinity);
+      boss.aimDirs = fanDirections(dx / dist, dz / dist, skill.count, skill.spread);
+      for (const [x, z] of boss.aimDirs) boss.warnLine(skill.shot.range, skill.shot.width * 2 + 0.4, x, z);
+    },
+    release(boss, skill) {
+      boss.play('Attack', { once: true, fade: 0.06 });
+      for (const [x, z] of boss.aimDirs) boss.game.enemyShots.fire(boss.position.x, boss.position.z, x, z, skill.shot);
+      boss.game.sfx.swing();
+      boss.recover(skill);
+    },
+  },
+
+  rain: {
+    start(boss) { boss.play('Wave'); },
+    release(boss, skill, player) {
+      boss.play('Attack', { once: true, fade: 0.06 });
+      for (let i = 0; i < skill.count; i++) {
+        const angle = Math.random() * Math.PI * 2, far = i === 0 ? 0 : skill.scatter * (0.4 + Math.random() * 0.6);
+        const spot = new THREE.Vector3(player.position.x + Math.cos(angle) * far, 0, player.position.z + Math.sin(angle) * far);
+        boss.game.level.constrain(spot, 0.5);
+        boss.game.enemyShots.lob(boss, spot, skill.shot, i * (skill.gap ?? 0.25));
+      }
+      boss.recover(skill);
+    },
+  },
+
+  // 飛上天：近戰打不到，每隔一下往玩家丟一顆火球（落點紅圈），時間到再降落，落地後有破綻
+  soar: {
+    start(boss) { boss.play('Fly'); },
+    release(boss, skill) {
+      boss.soarDrop = skill.every * 0.5;
+      boss.setState('soar');
+    },
+  },
+
   summon: {
     available(boss, skill) { return boss.minionCount() < skill.max; },
     start(boss) { boss.play('Wave'); },
@@ -87,6 +125,31 @@ export class Boss extends Enemy {
   get speed() { return super.speed * (this.enraged ? this.plan.enrage.pace : 1); }
   get pace() { return this.enraged ? this.plan.enrage.pace : 1; }
 
+  update_soar(dt, player) {
+    const { skill } = this;
+    const flying = this.timer < skill.duration;
+    this.play('Fly');
+    if (flying) {
+      this.position.y = Math.min(skill.height, this.position.y + SOAR_CLIMB * dt);
+      const dx = player.position.x - this.position.x, dz = player.position.z - this.position.z;
+      this.position.x += dx * SOAR_FOLLOW * dt;
+      this.position.z += dz * SOAR_FOLLOW * dt;
+      this.faceToward(dx, dz, dt, 5);
+      this.soarDrop -= dt;
+      if (this.soarDrop <= 0 && this.position.y >= skill.height * 0.8) {
+        this.soarDrop = skill.every / this.pace;
+        this.game.enemyShots.lob(this, player.position, skill.shot, 0);
+      }
+      return;
+    }
+    this.position.y = Math.max(0, this.position.y - SOAR_CLIMB * 1.5 * dt);
+    if (this.position.y > 0) return;
+    this.game.fx.shake(0.4);
+    this.game.fx.dust(this.position.x, 0.3, this.position.z, 24);
+    this.play('Idle');
+    this.recover(skill);
+  }
+
   minionCount() { return this.game.enemies.filter((e) => e !== this && e.alive).length; }
 
   // 血量都顯示在畫面上方，頭上不用再一條
@@ -108,39 +171,6 @@ export class Boss extends Enemy {
     sfx.blast();
   }
 
-  warnMesh(geometry) {
-    const material = new THREE.MeshBasicMaterial({ color: WARNING_COLOR, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide });
-    const mesh = new THREE.Mesh(geometry, material);
-    this.game.scene.add(mesh);
-    this.warnings.push(mesh);
-    return mesh;
-  }
-
-  warnCircle(x, z, radius) {
-    const mesh = this.warnMesh(circleGeometry);
-    mesh.position.set(x, WARNING_HEIGHT, z);
-    mesh.scale.set(radius, 1, radius);
-  }
-
-  warnLine(length, width) {
-    const mesh = this.warnMesh(lineGeometry);
-    mesh.position.set(this.position.x + this.chargeX * length / 2, WARNING_HEIGHT, this.position.z + this.chargeZ * length / 2);
-    mesh.rotation.y = Math.atan2(this.chargeX, this.chargeZ);
-    mesh.scale.set(width, 1, length);
-  }
-
-  clearWarnings() {
-    for (const mesh of this.warnings) {
-      this.game.scene.remove(mesh);
-      mesh.material.dispose();
-    }
-    this.warnings = [];
-  }
-
-  update(dt, player) {
-    if (!this.alive && this.warnings.length) this.clearWarnings();
-    super.update(dt, player);
-  }
 
   // 走近玩家；近身時普通攻擊，時間到就放招
   update_chase(dt, player) {
@@ -170,9 +200,8 @@ export class Boss extends Enemy {
   // 預警越接近爆發越亮，玩家看得出還剩多久
   update_windup(dt, player) {
     const windup = this.skill.windup / this.pace;
-    const progress = Math.min(1, this.timer / windup);
-    for (const mesh of this.warnings) mesh.material.opacity = 0.18 + 0.42 * progress;
-    if (this.skill.type !== 'charge') this.faceToward(player.position.x - this.position.x, player.position.z - this.position.z, dt, 6);
+    this.glowWarnings(this.timer / windup);
+    if (this.skill.type !== 'charge' && this.skill.type !== 'volley') this.faceToward(player.position.x - this.position.x, player.position.z - this.position.z, dt, 6);
     if (this.timer < windup) return;
     this.clearWarnings();
     SKILLS[this.skill.type].release(this, this.skill, player);
@@ -218,8 +247,4 @@ export class Boss extends Enemy {
     this.setState('chase');
   }
 
-  destroy() {
-    this.clearWarnings();
-    super.destroy();
-  }
 }

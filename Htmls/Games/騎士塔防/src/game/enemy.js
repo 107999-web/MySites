@@ -1,6 +1,12 @@
 // 敵人：沿著路線走向城門。路上遇到「擋路的人」（騎士兵、英雄）就停下來打，打倒或對方離開才繼續走。
 // 走到城門就扣城堡的愛心（leak）。數值都在 data/characters.json。
 // 特殊能力：leap 跳過擋路的人（忍者）、armor 盔甲（一般攻擊少扣，魔法不受影響）、heal 幫附近的敵人回血（祭司）、tint 模型染色。
+// 第 5～8 關新增：
+//   ranged 遠程：看到射程內的騎士兵或英雄就停下來射（追蹤彈），被擋住時照常近戰
+//   bomb   丟火焰彈砸塔：塔上先出現紅圈，落地讓塔暈眩
+//   charge 衝撞：遇到擋路的人直接撞過去（撞到的扣血）；blink 瞬移：遇到擋路的人消失，在前面出現
+//   trail  走過的路上留下毒池（騎士兵、英雄站在裡面會扣血）；split 倒下時分裂（在 main.js）
+//   fly    飛行：直線飛向城門，不會被擋，只有弓箭塔、魔法塔、遠距離英雄打得到
 import * as THREE from 'three';
 import { Actor } from './actor.js';
 
@@ -18,10 +24,21 @@ const KNOCK_BACK = 0.35;     // 被打到往回退幾公尺（重型敵人不退
 const LEAP_HEIGHT = 1.6;
 const HEAL_COLOR = '#4ade80';
 const ARMOR_COLOR = '#cbd5e1';
+const BLINK_COLOR = '#b07cff';
+const BOMB_COLOR = '#ff8a3d';
+const SHOT_HEIGHT = 1;
+
+const shadowMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3, depthWrite: false });
+const shadowGeometry = new THREE.CircleGeometry(1, 24).rotateX(-Math.PI / 2);
 
 export class Enemy extends Actor {
   constructor(game, def, instance, s = 0, lane = 0, path = game.paths[0]) {
     super(game, def, instance);
+    if (def.fly) { // 飛行：改走起點到城門的直線，s 依長度比例換算
+      const flight = game.flightPath(path);
+      s = (s / path.length) * flight.length;
+      path = flight;
+    }
     this.path = path;
     this.s = s;
     this.lane = lane;
@@ -36,14 +53,25 @@ export class Enemy extends Actor {
     this.tint = def.tint ?? [1, 1, 1];
     this.leapt = new Set(); // 已經跳過的擋路者，不再停下來
     this.healTimer = def.heal ? def.heal.every * Math.random() : 0;
+    const ability = def.ranged ?? def.bomb ?? def.charge ?? def.blink;
+    this.abilityTimer = ability ? ability.cooldown * (0.3 + Math.random() * 0.4) : 0;
+    this.trailTimer = def.trail?.every ?? 0;
     this.applyColor(1, 1, 1);
     if (def.heal) this.makeAura(def.heal.color ?? '#a78bfa');
     this.makeHealthBar();
     const p = this.path.at(s, lane);
-    this.position.set(p.x, 0, p.z);
+    this.position.set(p.x, def.fly?.height ?? 0, p.z);
     this.faceToward(p.dx, p.dz, Infinity);
-    this.play('Walk');
+    this.play(def.fly ? 'Fly' : 'Walk');
+    if (def.fly) {
+      this.shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
+      this.shadow.scale.setScalar(def.radius * 1.5);
+      game.scene.add(this.shadow);
+    }
   }
+
+  // 在空中：近戰（騎士兵、盜賊營、近戰英雄、震退）、陷阱都打不到
+  get airborne() { return Boolean(this.def.fly) && this.position.y > 1; }
 
   makeHealthBar() {
     const { fx } = this.game;
@@ -82,7 +110,7 @@ export class Enemy extends Actor {
 
   get speed() { return this.def.moveSpeed * (this.slow ? this.slow.factor : 1); }
   get alive() { return this.hp > 0; }
-  get canBeHit() { return this.alive; }
+  get canBeHit() { return this.alive && !this.vanished; }
   get progress() { return this.s - this.path.length; } // 塔優先打離城門最近的（好幾條路長度不同，所以用剩下的距離）
 
   update(dt) {
@@ -91,7 +119,13 @@ export class Enemy extends Actor {
     if (this.slow && (this.slow.remaining -= dt) <= 0) this.setSlow(null);
     this.timer += dt;
     this.cooldown -= dt;
+    this.abilityTimer -= dt;
     this[`update_${this.state}`](dt);
+    if (this.def.trail && this.alive && this.state !== 'dying') this.updateTrail(dt);
+    if (this.shadow) {
+      this.shadow.position.set(this.position.x, 0.05, this.position.z);
+      this.shadow.visible = this.alive;
+    }
   }
 
   setSlow(slow) {
@@ -135,6 +169,8 @@ export class Enemy extends Actor {
   }
 
   update_walk(dt) {
+    if (this.def.fly) { this.updateFlight(dt); return; }
+    if (this.abilityTimer <= 0 && this.tryAbility()) return;
     if (this.def.leap) { // 忍者：遇到騎士兵就跳過去；英雄擋得住（只有英雄抓得到忍者）
       const ahead = this.findBlocker(true, true);
       if (ahead) { this.startLeap(ahead); return; }
@@ -158,6 +194,152 @@ export class Enemy extends Actor {
     }
     this.play('Walk', { speed: this.speed / 2.2 });
     if (this.s >= this.path.length) this.game.onLeak(this);
+  }
+
+  // ---------- 第 5～8 關的能力 ----------
+  updateFlight(dt) {
+    this.s += this.speed * dt;
+    const p = this.path.at(this.s, this.lane);
+    this.position.set(p.x, this.def.fly.height + Math.sin(this.game.level.time * 3 + this.lane * 5) * 0.25, p.z);
+    this.faceToward(p.dx, p.dz, dt, 6);
+    this.play('Fly');
+    if (this.abilityTimer <= 0 && this.def.bomb) this.tryAbility();
+    if (this.s >= this.path.length) this.game.onLeak(this);
+  }
+
+  // 射程內最近的騎士兵或英雄
+  nearestBlocker(range) {
+    let best = null, bestD = range;
+    for (const b of this.game.blockers()) {
+      const d = Math.hypot(b.position.x - this.position.x, b.position.z - this.position.z);
+      if (d < bestD) { best = b; bestD = d; }
+    }
+    return best;
+  }
+
+  tryAbility() {
+    const { def, game } = this;
+    if (def.ranged) {
+      const target = this.nearestBlocker(def.ranged.range);
+      if (!target) return false;
+      this.aimAt = target;
+      this.setState('aim');
+      this.play('Idle');
+      return true;
+    }
+    if (def.bomb) {
+      const tower = game.towers.list.filter((t) => t.unit && t.stunned <= 0)
+        .map((t) => ({ t, d: Math.hypot(t.pedestal.x - this.position.x, t.pedestal.z - this.position.z) }))
+        .filter((o) => o.d <= def.bomb.range).sort((a, b) => a.d - b.d)[0]?.t;
+      if (!tower) return false;
+      const { x, z } = tower.pedestal;
+      const b = def.bomb;
+      game.warnArea(x, z, b.radius, b.windup + b.flight, BOMB_COLOR, () => {
+        game.towers.stunArea(x, z, b.radius, b.stun);
+        game.fx.blastRing(x, z, b.radius, BOMB_COLOR);
+        game.fx.burst(x, 1.2, z, 20, BOMB_COLOR, 4);
+        game.sfx.blast();
+      });
+      this.bombAt = { x, z };
+      this.setState(def.fly ? 'walk' : 'aim'); // 飛龍邊飛邊丟
+      if (def.fly) this.throwBomb();
+      else this.play('Idle');
+      this.abilityTimer = b.cooldown;
+      return !def.fly;
+    }
+    if (def.charge || def.blink) {
+      const ahead = this.findBlocker(true, Boolean(def.blink)); // 黑貓和忍者一樣只跳過騎士兵，英雄擋得住
+      if (!ahead) return false;
+      this.leapt.add(ahead);
+      this.abilityTimer = (def.charge ?? def.blink).cooldown;
+      this.dashFrom = this.s;
+      if (def.charge) {
+        this.dashHit = new Set();
+        this.setState('dash');
+        this.play('Walk', { speed: 2.4 });
+        game.sfx.swing();
+      } else {
+        this.vanished = true;
+        this.root.visible = false;
+        game.fx.burst(this.position.x, 0.8, this.position.z, 18, BLINK_COLOR, 3);
+        this.setState('blink');
+      }
+      return true;
+    }
+    return false;
+  }
+
+  throwBomb() {
+    const b = this.def.bomb;
+    const from = { x: this.position.x, y: this.position.y + SHOT_HEIGHT, z: this.position.z };
+    this.game.enemyShots.lob(from, this.bombAt, b.shot, b.flight);
+  }
+
+  update_aim(dt) {
+    const { def, game } = this;
+    if (def.bomb && !def.ranged) {
+      this.faceToward(this.bombAt.x - this.position.x, this.bombAt.z - this.position.z, dt, 8);
+      if (this.timer < def.bomb.windup) return;
+      this.throwBomb();
+      this.setState('attack');
+      this.attackConnected = true;
+      this.play('Attack', { once: true, fade: 0.08 });
+      return;
+    }
+    const r = def.ranged, t = this.aimAt;
+    if (!t?.canBlock) { this.setState('walk'); return; }
+    this.faceToward(t.position.x - this.position.x, t.position.z - this.position.z, dt, 10);
+    if (this.timer < r.windup) return;
+    const yaw = this.root.rotation.y;
+    const from = { x: this.position.x + Math.sin(yaw) * 0.5, y: SHOT_HEIGHT, z: this.position.z + Math.cos(yaw) * 0.5 };
+    game.enemyShots.fire(from, t, r.shot, game.enemyDamage(r.damage), this);
+    game.sfx.swing();
+    this.abilityTimer = r.cooldown;
+    this.setState('attack');
+    this.attackConnected = true; // 出手動作沿用攻擊，但不算近戰傷害
+    this.play('Attack', { once: true, fade: 0.08 });
+  }
+
+  // 山豬：沿路往前衝，撞到的騎士兵、英雄扣血
+  update_dash(dt) {
+    const c = this.def.charge;
+    this.s += c.speed * dt;
+    const p = this.path.at(this.s, this.lane);
+    this.position.set(p.x, 0, p.z);
+    this.faceToward(p.dx, p.dz, Infinity);
+    for (const b of this.game.blockers()) {
+      if (this.dashHit.has(b) || Math.hypot(b.position.x - p.x, b.position.z - p.z) > this.radius + b.radius + 0.3) continue;
+      this.dashHit.add(b);
+      this.leapt.add(b);
+      b.takeDamage(this.game.enemyDamage(c.damage), this);
+    }
+    this.game.fx.dust(p.x, 0.2, p.z, 1);
+    if (this.s >= this.path.length) { this.game.onLeak(this); return; }
+    if (this.s - this.dashFrom >= c.distance) this.setState('walk');
+  }
+
+  // 黑貓：消失，過一下在前面幾公尺出現
+  update_blink() {
+    const b = this.def.blink;
+    if (this.timer < b.time) return;
+    this.s = Math.min(this.path.length, this.dashFrom + b.distance);
+    const p = this.path.at(this.s, this.lane);
+    this.position.set(p.x, 0, p.z);
+    this.faceToward(p.dx, p.dz, Infinity);
+    this.vanished = false;
+    this.root.visible = true;
+    this.game.fx.burst(p.x, 0.8, p.z, 18, BLINK_COLOR, 3);
+    this.setState('walk');
+    if (this.s >= this.path.length) this.game.onLeak(this);
+  }
+
+  updateTrail(dt) {
+    this.trailTimer -= dt;
+    if (this.trailTimer > 0) return;
+    this.trailTimer = this.def.trail.every;
+    // 正在和騎士兵、英雄打的時候，毒池吐在對方腳下（被擋住就不會往前走，留在自己腳下沒人踩得到）
+    const at = this.blocker?.canBlock ? this.blocker.position : this.position;
+    this.game.enemyShots.pool(at.x, at.z, this.def.trail.pool);
   }
 
   startLeap(blocker) {
@@ -237,7 +419,7 @@ export class Enemy extends Actor {
   // 被震退：沿路往回推、暈眩，不扣血。重型敵人推不動
   shove(distance, stun) {
     this.flash(0xffffff);
-    if (this.def.poise || !this.alive) return;
+    if (this.def.poise || !this.alive || this.def.fly || this.vanished) return;
     this.release();
     this.s = Math.max(0, this.s - distance);
     const p = this.path.at(this.s, this.lane);
@@ -306,10 +488,13 @@ export class Enemy extends Actor {
       amount = Math.max(1, amount - this.def.armor);
       this.game.fx.burst(this.position.x, 1.2, this.position.z, 6, ARMOR_COLOR, 3);
     }
-    if (this.state === 'leap') mode = mode === 'stagger' ? 'plain' : mode; // 空中不會被打下來
+    if (['leap', 'dash', 'blink'].includes(this.state) || this.def.fly) mode = mode === 'stagger' ? 'plain' : mode; // 空中、衝撞中不會被打斷
     this.hp -= amount;
     this.updateHealthBar();
     if (this.hp <= 0) {
+      if (this.def.fly) this.position.y = 0; // 飛龍掉下來
+      this.vanished = false;
+      this.root.visible = true;
       this.release();
       this.setSlow(null);
       this.setState('dying');
@@ -328,6 +513,7 @@ export class Enemy extends Actor {
 
   destroy() {
     this.release();
+    if (this.shadow) this.game.scene.remove(this.shadow);
     super.destroy();
   }
 }

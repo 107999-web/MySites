@@ -33,7 +33,7 @@ const SKILLS = {
     game.fx.burst(x, 0.4, z, 60, skill.color, 3);
     game.sfx.wave();
     for (const e of game.enemies) {
-      if (!e.alive || Math.hypot(e.position.x - x, e.position.z - z) > skill.radius + e.radius) continue;
+      if (!e.alive || e.airborne || Math.hypot(e.position.x - x, e.position.z - z) > skill.radius + e.radius) continue; // 煙霧在地上，飛龍不受影響
       if (game.damageEnemy(e, skill.damage, 'plain')) e.setSlow(skill.slow);
     }
   },
@@ -218,7 +218,7 @@ export class Hero extends Actor {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);
     let hits = 0;
     for (const e of game.enemies) {
-      if (!e.alive) continue;
+      if (!e.canBeHit || e.airborne) continue; // 空中的飛龍砍不到
       const dx = e.position.x - this.position.x, dz = e.position.z - this.position.z;
       const dist = Math.hypot(dx, dz);
       if (dist > range + e.radius) continue;

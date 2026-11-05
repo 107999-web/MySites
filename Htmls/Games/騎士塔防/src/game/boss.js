@@ -1,5 +1,5 @@
 // Boss：一樣沿路走，多了招式循環、地面預警、狂暴與畫面上方的血條。招式打的是塔、騎士兵和英雄。
-// 招式類型：slam 砸地（打人、讓塔暈眩）、charge 沿路衝撞、summon 在身後召喚小怪。新招式在 SKILLS 加一項。
+// 招式類型：slam 砸地（打人、讓塔暈眩）、charge 沿路衝撞、summon 在身後召喚小怪、bombs 往好幾座塔丟火焰彈（塔暈眩）。新招式在 SKILLS 加一項。
 import * as THREE from 'three';
 import { Enemy } from './enemy.js';
 
@@ -57,6 +57,33 @@ const SKILLS = {
       boss.setState('charging');
       boss.play('Run', { speed: 2.2 });
       boss.game.sfx.swing();
+    },
+  },
+
+  // 挑幾座塔（越近越先），塔上先出現紅圈，時間到全部暈眩
+  bombs: {
+    available(boss) { return boss.game.towers.list.some((t) => t.unit); },
+    start(boss, skill) {
+      const towers = boss.game.towers.list.filter((t) => t.unit)
+        .sort((a, b) => Math.hypot(a.pedestal.x - boss.position.x, a.pedestal.z - boss.position.z) - Math.hypot(b.pedestal.x - boss.position.x, b.pedestal.z - boss.position.z))
+        .slice(0, skill.count);
+      boss.targets = towers.map((t) => ({ x: t.pedestal.x, z: t.pedestal.z }));
+      for (const { x, z } of boss.targets) boss.warnCircle(x, z, skill.radius);
+      boss.play('Wave');
+    },
+    release(boss, skill) {
+      const { fx, sfx, game } = boss;
+      boss.play('Attack', { once: true, fade: 0.06 });
+      for (const { x, z } of boss.targets) {
+        game.enemyShots.lob({ x: boss.position.x, y: boss.position.y + 1.5, z: boss.position.z }, { x, z }, skill.shot, 0.35);
+        fx.after(0.35, () => {
+          fx.blastRing(x, z, skill.radius, '#ff8a3d');
+          fx.burst(x, 1.2, z, 20, '#ff8a3d', 4);
+          game.towers.stunArea(x, z, skill.radius, skill.stun);
+        });
+      }
+      fx.after(0.35, () => { fx.shake(0.4); sfx.blast(); });
+      boss.recover(skill);
     },
   },
 

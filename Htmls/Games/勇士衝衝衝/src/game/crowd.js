@@ -356,7 +356,7 @@ export class Crowd {
       const s = this.stats(m);
       // 近戰要算上對方的體型與手長：Boss 很大，站在近戰打不到的地方就能打人
       const reach = s.shot ? s.range + this.radius * 0.5 : s.range + this.radius + MELEE_EXTRA;
-      const target = game.nearestEnemy(c, reach);
+      const target = game.nearestEnemy(c, reach, !s.shot); // 近戰打不到空中的飛龍
       if (!target) { m.cooldown = 0.1; continue; }
       m.cooldown = s.cooldown * (0.9 + Math.random() * 0.2);
       this.attack(m, s, target);
@@ -388,7 +388,7 @@ export class Crowd {
       return;
     }
     // 近戰：騎士扇形打到旁邊的（最多 cleave 隻），盜賊一刀兩道
-    const hits = [target, ...(s.cleave ? game.nearestEnemies(target.position, s.cleave + 1, 1.8).filter((e) => e !== target).slice(0, s.cleave) : [])];
+    const hits = [target, ...(s.cleave ? game.nearestEnemies(target.position, s.cleave + 1, 1.8, true).filter((e) => e !== target).slice(0, s.cleave) : [])];
     for (const e of hits) game.damageEnemy(e, s.damage);
     if (actor) {
       const yaw = actor.root.rotation.y;

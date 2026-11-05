@@ -333,6 +333,296 @@
         "Death"
       ],
       "source": "商店老闆.zip"
+    },
+    "人型_咕嚕_白": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95_%E7%99%BD/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95_%E7%99%BD.glb",
+      "kind": "character",
+      "tris": 13804,
+      "sizeBytes": 5818388,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "人型_咕嚕_白.zip"
+    },
+    "人型_咕嚕_綠": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95_%E7%B6%A0/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95_%E7%B6%A0.glb",
+      "kind": "character",
+      "tris": 13756,
+      "sizeBytes": 6167184,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "人型_咕嚕_綠.zip"
+    },
+    "人型_咕嚕王": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95%E7%8E%8B/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95%E7%8E%8B.glb",
+      "kind": "character",
+      "tris": 13884,
+      "sizeBytes": 6376184,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "人型_咕嚕王.zip"
+    },
+    "人型_哥布林-1": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-1/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-1.glb",
+      "kind": "character",
+      "tris": 13736,
+      "sizeBytes": 5510008,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "人型_哥布林-1.zip"
+    },
+    "人型_哥布林-2": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-2/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-2.glb",
+      "kind": "character",
+      "tris": 13852,
+      "sizeBytes": 5702628,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "人型_哥布林-2.zip"
+    },
+    "人型_哥布林-3": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-3/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-3.glb",
+      "kind": "character",
+      "tris": 13760,
+      "sizeBytes": 5452088,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "人型_哥布林-3.zip"
+    },
+    "人型_哥布林-4": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-4/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-4.glb",
+      "kind": "character",
+      "tris": 14000,
+      "sizeBytes": 3307760,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "人型_哥布林-4.zip"
+    },
+    "人型_哥布林王": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97%E7%8E%8B/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97%E7%8E%8B.glb",
+      "kind": "character",
+      "tris": 13912,
+      "sizeBytes": 4770488,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "人型_哥布林王.zip"
+    },
+    "人型_日本巫女": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E6%97%A5%E6%9C%AC%E5%B7%AB%E5%A5%B3/%E4%BA%BA%E5%9E%8B_%E6%97%A5%E6%9C%AC%E5%B7%AB%E5%A5%B3.glb",
+      "kind": "character",
+      "tris": 16240,
+      "sizeBytes": 4946648,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "人型_日本巫女.zip"
+    },
+    "特殊_史萊姆": {
+      "file": "assets/models/%E7%89%B9%E6%AE%8A_%E5%8F%B2%E8%90%8A%E5%A7%86/%E7%89%B9%E6%AE%8A_%E5%8F%B2%E8%90%8A%E5%A7%86.glb",
+      "kind": "character",
+      "tris": 13438,
+      "sizeBytes": 3438744,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death"
+      ],
+      "source": "特殊_史萊姆.zip"
+    },
+    "特殊_紅火龍": {
+      "file": "assets/models/%E7%89%B9%E6%AE%8A_%E7%B4%85%E7%81%AB%E9%BE%8D/%E7%89%B9%E6%AE%8A_%E7%B4%85%E7%81%AB%E9%BE%8D.glb",
+      "kind": "character",
+      "tris": 13712,
+      "sizeBytes": 6233224,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death",
+        "Fly"
+      ],
+      "source": "特殊_紅火龍.zip"
+    },
+    "特殊_綠龍": {
+      "file": "assets/models/%E7%89%B9%E6%AE%8A_%E7%B6%A0%E9%BE%8D/%E7%89%B9%E6%AE%8A_%E7%B6%A0%E9%BE%8D.glb",
+      "kind": "character",
+      "tris": 13898,
+      "sizeBytes": 5368076,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death",
+        "Fly"
+      ],
+      "source": "特殊_綠龍.zip"
+    },
+    "特殊_綠龍2": {
+      "file": "assets/models/%E7%89%B9%E6%AE%8A_%E7%B6%A0%E9%BE%8D2/%E7%89%B9%E6%AE%8A_%E7%B6%A0%E9%BE%8D2.glb",
+      "kind": "character",
+      "tris": 13920,
+      "sizeBytes": 5359392,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death",
+        "Fly"
+      ],
+      "source": "特殊_綠龍2.zip"
+    },
+    "特殊_蛇妖-1": {
+      "file": "assets/models/%E7%89%B9%E6%AE%8A_%E8%9B%87%E5%A6%96-1/%E7%89%B9%E6%AE%8A_%E8%9B%87%E5%A6%96-1.glb",
+      "kind": "character",
+      "tris": 13436,
+      "sizeBytes": 3944172,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death"
+      ],
+      "source": "特殊_蛇妖-1.zip"
+    },
+    "特殊_蛇妖王": {
+      "file": "assets/models/%E7%89%B9%E6%AE%8A_%E8%9B%87%E5%A6%96%E7%8E%8B/%E7%89%B9%E6%AE%8A_%E8%9B%87%E5%A6%96%E7%8E%8B.glb",
+      "kind": "character",
+      "tris": 13592,
+      "sizeBytes": 3504316,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death"
+      ],
+      "source": "特殊_蛇妖王.zip"
+    },
+    "獸型_山豬": {
+      "file": "assets/models/%E7%8D%B8%E5%9E%8B_%E5%B1%B1%E8%B1%AC/%E7%8D%B8%E5%9E%8B_%E5%B1%B1%E8%B1%AC.glb",
+      "kind": "character",
+      "tris": 13880,
+      "sizeBytes": 5161868,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death"
+      ],
+      "source": "獸型_山豬.zip"
+    },
+    "獸型_野狗": {
+      "file": "assets/models/%E7%8D%B8%E5%9E%8B_%E9%87%8E%E7%8B%97/%E7%8D%B8%E5%9E%8B_%E9%87%8E%E7%8B%97.glb",
+      "kind": "character",
+      "tris": 13528,
+      "sizeBytes": 4529988,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death"
+      ],
+      "source": "獸型_野狗.zip"
+    },
+    "獸型_黑貓": {
+      "file": "assets/models/%E7%8D%B8%E5%9E%8B_%E9%BB%91%E8%B2%93/%E7%8D%B8%E5%9E%8B_%E9%BB%91%E8%B2%93.glb",
+      "kind": "character",
+      "tris": 13886,
+      "sizeBytes": 4282828,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death"
+      ],
+      "source": "獸型_黑貓.zip"
+    },
+    "飛鏢": {
+      "file": "assets/models/%E9%A3%9B%E9%8F%A2/%E9%A3%9B%E9%8F%A2.glb",
+      "kind": "prop",
+      "tris": 5838,
+      "sizeBytes": 402916,
+      "clips": [],
+      "source": "飛鏢.glb"
     }
   }
 }

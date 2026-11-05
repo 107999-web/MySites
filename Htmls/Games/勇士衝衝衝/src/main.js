@@ -14,6 +14,7 @@ import { Gates, optionText } from './game/gates.js';
 import { label } from './game/math.js';
 import { Obstacles } from './game/obstacles.js';
 import { Projectiles } from './game/projectiles.js';
+import { EnemyShots } from './game/enemyShots.js';
 import { Save } from './game/save.js';
 import { Hud } from './ui/hud.js';
 import { renderPortraits } from './ui/portraits.js';
@@ -107,13 +108,21 @@ class Game {
     const spawnIds = levels.flatMap((l) => [...(l.enemies ?? []), { spawns: l.bossEscort ?? [] }].flatMap((g) => g.spawns.map((s) => s.enemy)));
     const extra = bosses.flatMap((b) => [...this.characters[b].boss.skills.map((s) => s.enemy), ...(this.characters[b].boss.reinforce?.enemies ?? [])]).filter(Boolean);
     const enemyIds = [...new Set([...spawnIds, ...bosses, ...extra, ...this.levels[ENDLESS].endless.enemies, ...this.settings.mystery.flatMap((m) => (m.ambush ?? []).map((a) => a.enemy))])];
-    for (const id of enemyIds) if (!this.characters[id]) throw new Error(`data/characters.json 沒有「${id}」`);
+    for (let i = 0; i < enemyIds.length; i++) { // 分裂出來的小怪（史萊姆）也要載入
+      const def = this.characters[enemyIds[i]];
+      if (!def) throw new Error(`data/characters.json 沒有「${enemyIds[i]}」`);
+      if (def.split && !enemyIds.includes(def.split.into)) enemyIds.push(def.split.into);
+    }
+    // 敵人丟出來的東西（飛鏢、箭、火焰彈）
+    const enemyShotModels = enemyIds.flatMap((id) => [this.characters[id].ability?.shot, ...(this.characters[id].boss?.skills ?? []).map((k) => k.shot)])
+      .map((s) => s?.model).filter((m) => m && this.assets.catalog[m]);
     const shots = this.heroTypes.map((id) => this.characters[id].shot).filter(Boolean);
     const models = [...this.heroTypes, ...enemyIds].map((id) => this.characters[id].model)
-      .concat(shots.map((s) => s.model).filter((m) => m && this.assets.catalog[m]), Obstacles.modelIds().filter((m) => this.assets.catalog[m]));
+      .concat(shots.map((s) => s.model).filter((m) => m && this.assets.catalog[m]), enemyShotModels, Obstacles.modelIds().filter((m) => this.assets.catalog[m]));
     await this.assets.preload(models, (done, total) => this.hud.showOverlay({ text: `載入模型 ${done} / ${total}…` }));
 
     this.projectiles = new Projectiles(this);
+    this.enemyShots = new EnemyShots(this);
     this.setLevel(this.settings.levels[0]);
     this.crowd = new Crowd(this);
     this.gates = new Gates(this);
@@ -170,6 +179,7 @@ class Game {
     this.enemies = [];
     this.groups = [];
     this.projectiles.clear();
+    this.enemyShots.clear();
     this.gates?.clear();
     this.obstacles?.clear();
     this.hud.hideBoss();
@@ -385,18 +395,19 @@ class Game {
     }
   }
 
-  nearestEnemy(pos, range) {
+  // melee：近戰找不到空中的飛龍
+  nearestEnemy(pos, range, melee = false) {
     let best = null, bestD = range;
     for (const e of this.enemies) {
-      if (!e.alive) continue;
+      if (!e.canBeHit || (melee && e.airborne)) continue;
       const d = Math.hypot(e.position.x - pos.x, e.position.z - pos.z);
       if (d < bestD) { best = e; bestD = d; }
     }
     return best;
   }
 
-  nearestEnemies(pos, n, range) {
-    return this.enemies.filter((e) => e.alive && Math.hypot(e.position.x - pos.x, e.position.z - pos.z) <= range)
+  nearestEnemies(pos, n, range, melee = false) {
+    return this.enemies.filter((e) => e.canBeHit && !(melee && e.airborne) && Math.hypot(e.position.x - pos.x, e.position.z - pos.z) <= range)
       .sort((a, b) => Math.hypot(a.position.x - pos.x, a.position.z - pos.z) - Math.hypot(b.position.x - pos.x, b.position.z - pos.z)).slice(0, n);
   }
 
@@ -416,9 +427,35 @@ class Game {
       this.fx.bones(e.position.x, 1, e.position.z);
       this.sfx.bones();
       if (e.def.gold && this.state === 'playing') this.addGold(e.def.gold, e.position);
+      if (e.def.split && this.state === 'playing') this.splitEnemy(e);
       if (e.def.boss) this.onBossDefeated(e);
     }
     return true;
+  }
+
+  // 現在危險的地方（給測試機器人閃躲）：直線 { x, w }（整條路）、圓 { x, z, r }
+  enemyDangers() {
+    const out = [];
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      const a = e.ability;
+      if (e.state === 'aim' && a?.type === 'shoot') out.push(...e.aimXs.map((x) => ({ x, w: (a.shot.width ?? 0.4) + 0.6 })));
+      if (e.state === 'aim' && a?.type === 'charge') out.push({ x: e.position.x, w: a.width / 2 + 0.4 });
+      if ((e.state === 'swoopAim' || e.state === 'dive') && e.diveTarget) out.push({ x: e.diveTarget.x, z: e.diveTarget.z, r: e.def.fly.swoop.radius });
+      if (e.lanes && e.aimXs) out.push(...e.aimXs.map((x) => ({ x, w: (e.skill.shot.width ?? 0.4) + 0.6 })));
+      if (e.warn) out.push({ x: e.warn.position.x, z: e.warn.position.z, r: e.skill.radius });
+    }
+    for (const s of this.enemyShots.lanes) out.push({ x: s.x, w: (s.spec.width ?? 0.4) + 0.6 });
+    for (const l of this.enemyShots.lobs) out.push({ x: l.target.x, z: l.target.z, r: l.spec.radius });
+    for (const q of this.enemyShots.pools) out.push({ x: q.x, z: q.z, r: q.def.radius });
+    return out;
+  }
+
+  // 史萊姆：倒下的地方彈出幾隻小的，直接衝向隊伍
+  splitEnemy(e) {
+    const { into, count, color } = e.def.split;
+    for (let i = 0; i < count; i++) this.spawnEnemy(into, e.position.x + (i - (count - 1) / 2) * 1.1, -e.position.z, true);
+    this.fx.burst(e.position.x, 0.6, e.position.z, 20, color ?? '#5ec8ff', 4);
   }
 
   hurtCrowd(amount) {
@@ -527,7 +564,8 @@ class Game {
     if (extra) { const before = crowd.count; crowd.remove(Math.min(extra, crowd.count - 1), false); lost += before - crowd.count; }
     this.trapLost = (this.trapLost ?? 0) + lost;
     clearTimeout(this.trapTimer);
-    this.trapTimer = setTimeout(() => { if (this.trapLost) this.hud.gateFeedback(`撞到陷阱 −${this.trapLost}`, 'wrong'); this.trapLost = 0; }, 120);
+    const label = def.label ?? '撞到陷阱';
+    this.trapTimer = setTimeout(() => { if (this.trapLost) this.hud.gateFeedback(`${label} −${this.trapLost}`, 'wrong'); this.trapLost = 0; }, 120);
     this.fx.burst(m.actor?.position.x ?? crowd.x, 1, m.actor?.position.z ?? -crowd.d, 8, '#ef4444', 3);
     this.sfx.hurt();
     this.fx.shake(0.15);
@@ -584,6 +622,7 @@ class Game {
   endRun(won) {
     if (this.state !== 'playing') return;
     this.state = 'ending';
+    this.lastWon = won; // 測試用：英雄倒下時夥伴可能還在，不能用人數判斷輸贏
     const { save } = this;
     const history = this.gates.history;
     const judged = history.filter((h) => h.right !== null);
@@ -635,7 +674,7 @@ class Game {
     if (this.state === 'playing') {
       const length = this.isEndless ? Infinity : this.level.length;
       if (this.isEndless) this.endless.update();
-      const blocked = this.enemies.some((e) => e.alive && e.distanceTo(crowd) < BLOCK_GAP);
+      const blocked = this.enemies.some((e) => e.blocking && e.distanceTo(crowd) < BLOCK_GAP); // 空中的飛龍、消失的黑貓不擋路
       const moving = !blocked && crowd.d < length;
       if (moving) crowd.d = Math.min(length, crowd.d + this.settings.runSpeed * dt);
       const half = crowd.edge; // 英雄永遠可以走到路邊；後面的夥伴會被石牆擠住，不會限制英雄
@@ -665,6 +704,7 @@ class Game {
       for (const e of this.enemies) e.update(dt, crowd);
       this.separate();
       this.projectiles.update(dt);
+      this.enemyShots.update(dt);
       for (const e of this.enemies) if (e.removed) e.destroy();
       this.enemies = this.enemies.filter((e) => !e.removed);
       for (const e of this.enemies) e.updateVisual(dt);

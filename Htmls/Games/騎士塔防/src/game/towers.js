@@ -142,7 +142,7 @@ class Soldier extends Actor {
     }
     if (best) return best;
     for (const e of this.game.enemies) {
-      if (!e.alive) continue;
+      if (!e.alive || e.airborne) continue; // 騎士兵砍不到空中的飛龍
       const d = Math.hypot(e.position.x - this.position.x, e.position.z - this.position.z) - e.radius;
       if (d < bestD) { best = e; bestD = d; }
     }
@@ -169,7 +169,7 @@ class Soldier extends Actor {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);
     let hits = 0;
     for (const e of game.enemies) {
-      if (!e.alive) continue;
+      if (!e.alive || e.airborne) continue;
       const dx = e.position.x - this.position.x, dz = e.position.z - this.position.z;
       const dist = Math.hypot(dx, dz);
       if (dist > stats.attackRange + e.radius) continue;
@@ -308,8 +308,9 @@ class Tower {
   pickTargets(count = 1) {
     const { range } = this.stats;
     const c = this.center;
+    const melee = this.kind === 'melee'; // 盜賊營砍不到空中的飛龍
     return this.game.enemies
-      .filter((e) => e.canBeHit && Math.hypot(e.position.x - c.x, e.position.z - c.z) <= range + e.radius)
+      .filter((e) => e.canBeHit && !(melee && e.airborne) && Math.hypot(e.position.x - c.x, e.position.z - c.z) <= range + e.radius)
       .sort((a, b) => b.progress - a.progress)
       .slice(0, count);
   }

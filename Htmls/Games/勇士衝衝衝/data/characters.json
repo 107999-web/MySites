@@ -284,5 +284,689 @@
     "stunTime": 0.25,
     "score": 45,
     "gold": 8
+  },
+  "人型_哥布林-1": {
+    "model": "人型_哥布林-1",
+    "role": "enemy",
+    "scale": 0.8,
+    "hp": 5,
+    "moveSpeed": 2.6,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.4,
+    "score": 10,
+    "gold": 3,
+    "ability": {
+      "type": "shoot",
+      "range": 26,
+      "windup": 0.9,
+      "cooldown": 3.5,
+      "shot": {
+        "model": "飛鏢",
+        "modelScale": 0.42,
+        "modelRotation": [
+          -90,
+          0,
+          0
+        ],
+        "spin": 3,
+        "speed": 16,
+        "width": 0.35,
+        "color": "#d7dde8",
+        "label": "被飛鏢打中",
+        "count": 3,
+        "gap": 1.6,
+        "kill": 0.35
+      }
+    }
+  },
+  "人型_哥布林-2": {
+    "model": "人型_哥布林-2",
+    "role": "enemy",
+    "scale": 0.8,
+    "hp": 5,
+    "moveSpeed": 2.6,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.4,
+    "score": 10,
+    "gold": 3,
+    "ability": {
+      "type": "shoot",
+      "range": 30,
+      "windup": 0.8,
+      "cooldown": 2.8,
+      "shot": {
+        "model": "飛鏢",
+        "modelScale": 0.42,
+        "modelRotation": [
+          -90,
+          0,
+          0
+        ],
+        "spin": 3,
+        "speed": 20,
+        "width": 0.35,
+        "color": "#d7dde8",
+        "label": "被飛鏢打中",
+        "kill": 0.35
+      }
+    }
+  },
+  "人型_哥布林-3": {
+    "model": "人型_哥布林-3",
+    "role": "enemy",
+    "scale": 0.82,
+    "hp": 6,
+    "moveSpeed": 2.4,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.4,
+    "score": 10,
+    "gold": 4,
+    "ability": {
+      "type": "lob",
+      "range": 28,
+      "windup": 0.6,
+      "cooldown": 4.5,
+      "shot": {
+        "model": "火焰彈",
+        "modelScale": 0.55,
+        "modelGlow": 0.9,
+        "flight": 1.1,
+        "radius": 1.6,
+        "color": "#ff8a3d",
+        "label": "被火焰彈炸到",
+        "kill": 0.4
+      }
+    }
+  },
+  "人型_日本巫女": {
+    "model": "人型_日本巫女",
+    "role": "enemy",
+    "scale": 0.8,
+    "hp": 7,
+    "moveSpeed": 2.2,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.42,
+    "score": 10,
+    "gold": 5,
+    "ability": {
+      "type": "shoot",
+      "range": 32,
+      "windup": 1,
+      "cooldown": 3.2,
+      "shot": {
+        "model": "弓箭",
+        "modelScale": 1.5,
+        "speed": 22,
+        "width": 0.3,
+        "color": "#ffe9a8",
+        "label": "被箭射中",
+        "kill": 0.4
+      }
+    }
+  },
+  "人型_咕嚕_綠": {
+    "model": "人型_咕嚕_綠",
+    "role": "enemy",
+    "scale": 0.85,
+    "hp": 5,
+    "moveSpeed": 2.4,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.42,
+    "score": 10,
+    "gold": 3,
+    "ability": {
+      "type": "lob",
+      "range": 24,
+      "windup": 0.6,
+      "cooldown": 5,
+      "shot": {
+        "size": 0.26,
+        "flight": 1,
+        "radius": 1.3,
+        "color": "#7ddc4a",
+        "label": "被毒液噴到",
+        "pool": {
+          "radius": 1.3,
+          "duration": 5,
+          "color": "#7ddc4a",
+          "label": "踩到毒池",
+          "kill": 0.3
+        },
+        "kill": 0.35
+      }
+    }
+  },
+  "人型_哥布林-4": {
+    "model": "人型_哥布林-4",
+    "role": "enemy",
+    "scale": 0.95,
+    "hp": 14,
+    "moveSpeed": 1.9,
+    "attackDamage": 1,
+    "attackRange": 1.6,
+    "attackCooldown": 2,
+    "attackHitTime": 0.35,
+    "radius": 0.55,
+    "score": 10,
+    "gold": 5,
+    "stunTime": 0.25
+  },
+  "人型_咕嚕_白": {
+    "model": "人型_咕嚕_白",
+    "role": "enemy",
+    "scale": 0.85,
+    "hp": 3,
+    "moveSpeed": 4,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.1,
+    "attackHitTime": 0.35,
+    "radius": 0.4,
+    "score": 10,
+    "gold": 1
+  },
+  "獸型_野狗": {
+    "model": "獸型_野狗",
+    "role": "enemy",
+    "scale": 0.75,
+    "hp": 4,
+    "moveSpeed": 4.5,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.2,
+    "attackHitTime": 0.35,
+    "radius": 0.4,
+    "score": 10,
+    "gold": 2
+  },
+  "獸型_山豬": {
+    "model": "獸型_山豬",
+    "role": "enemy",
+    "scale": 0.95,
+    "hp": 10,
+    "moveSpeed": 2.4,
+    "attackDamage": 1,
+    "attackRange": 1.7,
+    "attackCooldown": 2.2,
+    "attackHitTime": 0.35,
+    "radius": 0.6,
+    "score": 10,
+    "gold": 5,
+    "ability": {
+      "type": "charge",
+      "range": 22,
+      "min": 6,
+      "windup": 1,
+      "speed": 13,
+      "width": 1.4,
+      "cooldown": 99,
+      "label": "被山豬撞到",
+      "kill": 0.5
+    }
+  },
+  "獸型_黑貓": {
+    "model": "獸型_黑貓",
+    "role": "enemy",
+    "scale": 0.6,
+    "hp": 4,
+    "moveSpeed": 3,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1,
+    "attackHitTime": 0.35,
+    "radius": 0.38,
+    "score": 10,
+    "gold": 4,
+    "ability": {
+      "type": "blink",
+      "range": 14,
+      "min": 4,
+      "windup": 0.7,
+      "cooldown": 6
+    }
+  },
+  "特殊_史萊姆": {
+    "model": "特殊_史萊姆",
+    "role": "enemy",
+    "scale": 0.75,
+    "hp": 8,
+    "moveSpeed": 1.8,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.55,
+    "score": 10,
+    "gold": 3,
+    "split": {
+      "into": "小史萊姆",
+      "count": 2,
+      "color": "#5ec8ff"
+    }
+  },
+  "小史萊姆": {
+    "model": "特殊_史萊姆",
+    "role": "enemy",
+    "scale": 0.42,
+    "hp": 3,
+    "moveSpeed": 2.8,
+    "attackDamage": 1,
+    "attackRange": 1.1,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.32,
+    "score": 10,
+    "gold": 1
+  },
+  "特殊_蛇妖-1": {
+    "model": "特殊_蛇妖-1",
+    "role": "enemy",
+    "scale": 1,
+    "hp": 14,
+    "moveSpeed": 1.8,
+    "attackDamage": 1,
+    "attackRange": 1.7,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.5,
+    "score": 10,
+    "gold": 6,
+    "trail": {
+      "every": 1.5,
+      "pool": {
+        "radius": 1.2,
+        "duration": 6,
+        "color": "#7ddc4a",
+        "label": "踩到毒池",
+        "kill": 0.3
+      }
+    }
+  },
+  "特殊_綠龍": {
+    "model": "特殊_綠龍",
+    "role": "enemy",
+    "scale": 1.05,
+    "hp": 12,
+    "moveSpeed": 3,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.8,
+    "score": 10,
+    "gold": 8,
+    "fly": {
+      "height": 3.2,
+      "hover": 6.5,
+      "aggro": 32,
+      "swoop": {
+        "cooldown": 5,
+        "windup": 1.3,
+        "radius": 1.8,
+        "ground": 2.5,
+        "label": "被飛龍撲到",
+        "kill": 0.4
+      }
+    }
+  },
+  "特殊_綠龍2": {
+    "model": "特殊_綠龍2",
+    "role": "enemy",
+    "scale": 1.05,
+    "hp": 11,
+    "moveSpeed": 3,
+    "attackDamage": 1,
+    "attackRange": 1.5,
+    "attackCooldown": 1.6,
+    "attackHitTime": 0.35,
+    "radius": 0.8,
+    "score": 10,
+    "gold": 9,
+    "fly": {
+      "height": 3.2,
+      "hover": 8,
+      "aggro": 34,
+      "swoop": {
+        "cooldown": 8,
+        "windup": 1.3,
+        "radius": 1.8,
+        "ground": 2.5,
+        "label": "被飛龍撲到",
+        "kill": 0.4
+      }
+    },
+    "ability": {
+      "type": "shoot",
+      "range": 40,
+      "windup": 1,
+      "cooldown": 4.5,
+      "shot": {
+        "model": "火球",
+        "modelScale": 0.8,
+        "modelRotation": [
+          -90,
+          0,
+          0
+        ],
+        "modelGlow": 0.9,
+        "speed": 14,
+        "width": 0.45,
+        "color": "#ff8a3d",
+        "trail": true,
+        "height": 1.2,
+        "label": "被火球打中",
+        "kill": 0.4
+      }
+    }
+  },
+  "人型_哥布林王": {
+    "model": "人型_哥布林王",
+    "role": "boss",
+    "scale": 1.4,
+    "hp": 1400,
+    "moveSpeed": 1.4,
+    "attackDamage": 2,
+    "attackRange": 2.6,
+    "attackCooldown": 2.4,
+    "attackHitTime": 0.35,
+    "radius": 1,
+    "score": 500,
+    "gold": 50,
+    "poise": true,
+    "boss": {
+      "name": "哥布林王",
+      "skillEvery": 5,
+      "skills": [
+        {
+          "type": "volley",
+          "count": 3,
+          "gap": 1.8,
+          "shot": {
+            "model": "飛鏢",
+            "modelScale": 0.42,
+            "modelRotation": [
+              -90,
+              0,
+              0
+            ],
+            "spin": 3,
+            "speed": 16,
+            "width": 0.35,
+            "color": "#d7dde8",
+            "label": "被飛鏢打中",
+            "kill": 0.4
+          },
+          "windup": 1.2,
+          "recover": 1
+        },
+        {
+          "type": "summon",
+          "enemy": "人型_哥布林-4",
+          "count": 4,
+          "windup": 0.9,
+          "recover": 0.8
+        },
+        {
+          "type": "slam",
+          "radius": 3.2,
+          "damage": 20,
+          "windup": 1.4,
+          "recover": 1
+        }
+      ],
+      "reinforce": {
+        "first": 4,
+        "every": 5,
+        "count": 6,
+        "enemies": [
+          "人型_哥布林-4",
+          "骷髏人",
+          "骷髏人"
+        ]
+      }
+    }
+  },
+  "人型_咕嚕王": {
+    "model": "人型_咕嚕王",
+    "role": "boss",
+    "scale": 1.4,
+    "hp": 1450,
+    "moveSpeed": 1.4,
+    "attackDamage": 2,
+    "attackRange": 2.6,
+    "attackCooldown": 2.4,
+    "attackHitTime": 0.35,
+    "radius": 1,
+    "score": 500,
+    "gold": 50,
+    "poise": true,
+    "boss": {
+      "name": "咕嚕王",
+      "skillEvery": 5,
+      "skills": [
+        {
+          "type": "slam",
+          "radius": 3.2,
+          "damage": 20,
+          "windup": 1.4,
+          "recover": 1
+        },
+        {
+          "type": "rain",
+          "count": 3,
+          "scatter": 2.5,
+          "gap": 0.25,
+          "shot": {
+            "size": 0.26,
+            "flight": 1,
+            "radius": 1.3,
+            "color": "#7ddc4a",
+            "label": "被毒液噴到",
+            "pool": {
+              "radius": 1.3,
+              "duration": 5,
+              "color": "#7ddc4a",
+              "label": "踩到毒池",
+              "kill": 0.3
+            },
+            "kill": 0.4
+          },
+          "windup": 1,
+          "recover": 1
+        },
+        {
+          "type": "summon",
+          "enemy": "人型_咕嚕_白",
+          "count": 6,
+          "windup": 0.9,
+          "recover": 0.8
+        }
+      ],
+      "reinforce": {
+        "first": 4,
+        "every": 5,
+        "count": 6,
+        "enemies": [
+          "人型_咕嚕_白",
+          "獸型_野狗",
+          "人型_咕嚕_白"
+        ]
+      }
+    }
+  },
+  "特殊_蛇妖王": {
+    "model": "特殊_蛇妖王",
+    "role": "boss",
+    "scale": 1.5,
+    "hp": 1500,
+    "moveSpeed": 1.4,
+    "attackDamage": 2,
+    "attackRange": 2.6,
+    "attackCooldown": 2.4,
+    "attackHitTime": 0.35,
+    "radius": 1,
+    "score": 500,
+    "gold": 50,
+    "poise": true,
+    "boss": {
+      "name": "蛇妖王",
+      "skillEvery": 5,
+      "skills": [
+        {
+          "type": "rain",
+          "count": 4,
+          "scatter": 3,
+          "gap": 0.2,
+          "shot": {
+            "size": 0.26,
+            "flight": 1,
+            "radius": 1.3,
+            "color": "#7ddc4a",
+            "label": "被毒液噴到",
+            "pool": {
+              "radius": 1.3,
+              "duration": 5,
+              "color": "#7ddc4a",
+              "label": "踩到毒池",
+              "kill": 0.3
+            },
+            "kill": 0.4
+          },
+          "windup": 1.1,
+          "recover": 1
+        },
+        {
+          "type": "volley",
+          "count": 3,
+          "gap": 1.8,
+          "shot": {
+            "size": 0.28,
+            "speed": 13,
+            "width": 0.4,
+            "color": "#7ddc4a",
+            "trail": true,
+            "label": "被毒液噴到",
+            "kill": 0.4
+          },
+          "windup": 1.2,
+          "recover": 1
+        },
+        {
+          "type": "summon",
+          "enemy": "特殊_史萊姆",
+          "count": 3,
+          "windup": 0.9,
+          "recover": 0.8
+        }
+      ],
+      "reinforce": {
+        "first": 4,
+        "every": 5,
+        "count": 6,
+        "enemies": [
+          "特殊_史萊姆",
+          "人型_咕嚕_白",
+          "人型_咕嚕_白"
+        ]
+      }
+    }
+  },
+  "特殊_紅火龍": {
+    "model": "特殊_紅火龍",
+    "role": "boss",
+    "scale": 1.7,
+    "hp": 1500,
+    "moveSpeed": 1.4,
+    "attackDamage": 2,
+    "attackRange": 2.6,
+    "attackCooldown": 2.4,
+    "attackHitTime": 0.35,
+    "radius": 1.1,
+    "score": 500,
+    "gold": 50,
+    "poise": true,
+    "boss": {
+      "name": "紅火龍",
+      "skillEvery": 5,
+      "skills": [
+        {
+          "type": "rain",
+          "count": 4,
+          "scatter": 3,
+          "gap": 0.25,
+          "shot": {
+            "model": "火焰彈",
+            "modelScale": 0.55,
+            "modelGlow": 0.9,
+            "flight": 1.1,
+            "radius": 1.7,
+            "color": "#ff8a3d",
+            "label": "被火焰彈炸到",
+            "kill": 0.4
+          },
+          "windup": 1,
+          "recover": 2.5
+        },
+        {
+          "type": "volley",
+          "count": 3,
+          "gap": 2,
+          "shot": {
+            "model": "火球",
+            "modelScale": 0.8,
+            "modelRotation": [
+              -90,
+              0,
+              0
+            ],
+            "modelGlow": 0.9,
+            "speed": 14,
+            "width": 0.45,
+            "color": "#ff8a3d",
+            "trail": true,
+            "height": 1.2,
+            "label": "被火球打中",
+            "kill": 0.4
+          },
+          "windup": 1.2,
+          "recover": 2.5
+        },
+        {
+          "type": "summon",
+          "enemy": "特殊_綠龍",
+          "count": 1,
+          "windup": 0.9,
+          "recover": 2.5
+        }
+      ],
+      "reinforce": {
+        "first": 4,
+        "every": 5,
+        "count": 6,
+        "enemies": [
+          "人型_哥布林-4",
+          "骷髏人",
+          "人型_哥布林-3"
+        ]
+      }
+    },
+    "fly": {
+      "height": 4
+    }
   }
 }

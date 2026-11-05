@@ -7,6 +7,7 @@ import { Sfx } from './core/sfx.js';
 import { Boss } from './game/boss.js';
 import { Chests } from './game/chests.js';
 import { Enemy } from './game/enemy.js';
+import { EnemyShots } from './game/enemyShots.js';
 import { Clones } from './game/clones.js';
 import { Coins } from './game/coins.js';
 import { Fx } from './game/fx.js';
@@ -123,7 +124,17 @@ class Game {
     const bossIds = allWaves.flatMap((w) => w.boss ?? []);
     const summoned = bossIds.flatMap((id) => this.characters[id]?.boss?.skills.map((s) => s.enemy) ?? []).filter(Boolean);
     const enemyIds = [...allWaves.flatMap((w) => (w.spawns ?? []).map((s) => s.enemy)), ...bossIds, ...summoned];
-    for (const id of enemyIds) if (!this.characters[id]) throw new Error(`data/characters.json 沒有「${id}」`);
+    // 分裂出來的小怪（史萊姆）也要先載入
+    for (let i = 0; i < enemyIds.length; i++) {
+      const def = this.characters[enemyIds[i]];
+      if (!def) throw new Error(`data/characters.json 沒有「${enemyIds[i]}」`);
+      if (def.split && !enemyIds.includes(def.split.into)) enemyIds.push(def.split.into);
+    }
+    // 敵人丟出來的東西（箭、飛鏢、火焰彈）
+    this.enemyShotSpecs = [...new Set(enemyIds)].flatMap((id) => {
+      const def = this.characters[id];
+      return [def.ability?.shot, ...(def.boss?.skills ?? []).map((s) => s.shot)].filter(Boolean);
+    });
     this.itemConfig = await loadJson('data/items.json');
     // 道具模型可以還沒匯入（會用程式畫的藥瓶代替），所以只載入清單裡有的
     this.coinConfig = await loadJson('data/coins.json');
@@ -134,7 +145,8 @@ class Game {
     this.playable = Object.keys(this.characters).filter((id) => this.characters[id].role === 'player' && this.assets.catalog[this.characters[id].model]);
     if (!this.playable.includes(this.settings.player)) throw new Error(`data/game.json 的預設角色「${this.settings.player}」無法使用`);
     const shotModels = this.playable.flatMap((id) => [this.characters[id].shot?.model, this.characters[id].boost?.shot?.model]).filter((id) => this.assets.catalog[id]);
-    const modelIds = [...this.playable.map((id) => this.characters[id].model), ...shotModels, ...enemyIds.map((id) => this.characters[id].model), ...allLevels.flatMap((l) => Level.modelIds(l)), ...itemModels];
+    const enemyShotModels = this.enemyShotSpecs.map((s) => s.model).filter((id) => id && this.assets.catalog[id]);
+    const modelIds = [...this.playable.map((id) => this.characters[id].model), ...shotModels, ...enemyShotModels, ...enemyIds.map((id) => this.characters[id].model), ...allLevels.flatMap((l) => Level.modelIds(l)), ...itemModels];
     await this.assets.preload(modelIds, (done, total) => {
       this.hud.showOverlay({ text: `載入模型 ${done} / ${total}…` });
     });
@@ -152,6 +164,7 @@ class Game {
     this.shopStage = new ShopStage(this, this.shopConfig.stage);
     this.shopStage.resize(innerWidth / innerHeight);
     this.projectiles = new Projectiles(this);
+    this.enemyShots = new EnemyShots(this);
     this.clones = new Clones(this);
     this.players = new Map();
     this.selectCharacter(this.settings.player);
@@ -299,6 +312,7 @@ class Game {
     this.hazards.reset();
     this.chests?.reset();
     this.projectiles.clear();
+    this.enemyShots.clear();
     this.clones.hide();
   }
 
@@ -314,6 +328,7 @@ class Game {
     this.player.reset(x, z);
     this.skills.reset();
     this.projectiles.prepare(this.player.def);
+    if (!this.enemyShotsReady) { this.enemyShots.prepare(this.enemyShotSpecs); this.enemyShotsReady = true; }
     this.clones.prepare(Object.values(this.itemConfig.items).find((i) => i.effect === 'clones')?.count ?? 0);
     this.waves = new WaveDirector(this, this.levelData);
     this.state = 'playing';
@@ -346,18 +361,44 @@ class Game {
     }
   }
 
-  spawnEnemy(id, x, z) {
+  // instant：不從地底爬出，直接出現（史萊姆分裂）
+  spawnEnemy(id, x, z, { instant = false } = {}) {
     const def = this.characters[id];
     const EnemyClass = def.boss ? Boss : Enemy;
     const enemy = new EnemyClass(this, def, this.assets.instantiate(def.model), x, z);
+    if (instant && !def.fly) {
+      enemy.position.y = 0;
+      enemy.setState('chase');
+    }
     this.enemies.push(enemy);
     return enemy;
   }
 
+  // 史萊姆：倒下的地方彈出幾隻小的，往兩側散開
+  splitEnemy(enemy) {
+    const { into, count } = enemy.def.split;
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2 + Math.random();
+      const spot = new THREE.Vector3(enemy.position.x + Math.cos(angle) * 0.9, 0, enemy.position.z + Math.sin(angle) * 0.9);
+      this.level.constrain(spot, 0.4);
+      const child = this.spawnEnemy(into, spot.x, spot.z, { instant: true });
+      child.knockX = Math.cos(angle) * 4;
+      child.knockZ = Math.sin(angle) * 4;
+      child.setState('stunned');
+    }
+    this.fx.burst(enemy.position.x, 0.6, enemy.position.z, 20, enemy.def.split.color ?? '#5ec8ff', 4);
+  }
+
+  // 給測試機器人閃躲：敵人的瞄準線、落點圈、毒池
+  enemyDangers() {
+    return [...this.enemies.flatMap((e) => e.dangers()), ...this.enemyShots.dangers()];
+  }
+
   nearestEnemy(position, range) {
     let best = null, bestDist = range;
+    const melee = !this.player.def.shot;
     for (const e of this.enemies) {
-      if (!e.canBeHit) continue;
+      if (!e.canBeHit || (melee && e.airborne)) continue; // 近戰角色不要轉向打不到的飛龍
       const d = Math.hypot(e.position.x - position.x, e.position.z - position.z);
       if (d < bestDist) { best = e; bestDist = d; }
     }
@@ -414,7 +455,7 @@ class Game {
       if (this.chests.hit(chest, swing)) hits += 1;
     }
     for (const e of this.enemies) {
-      if (swing.has(e) || !e.canBeHit) continue;
+      if (swing.has(e) || !e.canBeHit || e.airborne) continue; // 飛在空中砍不到
       const dx = e.position.x - attacker.position.x;
       const dz = e.position.z - attacker.position.z;
       const dist = Math.hypot(dx, dz);
@@ -530,6 +571,7 @@ class Game {
       this.score += enemy.def.score ?? 0;
       this.hud.setScore(this.score);
       if (drops) this.items.onEnemyKilled(enemy);
+      if (drops && enemy.def.split) this.splitEnemy(enemy);
       this.coins.onEnemyKilled(enemy);
       if (enemy.def.boss) this.onBossDefeated(enemy);
     }
@@ -557,7 +599,7 @@ class Game {
   }
 
   separateEnemies() {
-    const list = this.enemies.filter((e) => e.state !== 'dying' && e.state !== 'rising');
+    const list = this.enemies.filter((e) => e.state !== 'dying' && e.state !== 'rising' && !e.airborne && !e.vanished);
     for (let i = 0; i < list.length; i++) {
       for (let j = i + 1; j < list.length; j++) {
         if (list[i].def.boss || list[j].def.boss) { this.pushOffBoss(list[i], list[j]); continue; }
@@ -672,6 +714,7 @@ class Game {
       for (const e of this.enemies) if (e.state !== 'rising') this.level.constrain(e.position, e.radius);
       this.level.constrain(this.player.position, this.player.radius);
       this.projectiles.update(dt);
+      this.enemyShots.update(dt);
       this.clones.update(dt);
       for (const e of this.enemies) if (e.removed) e.destroy();
       this.enemies = this.enemies.filter((e) => !e.removed);

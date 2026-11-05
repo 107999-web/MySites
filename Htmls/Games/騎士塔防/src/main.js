@@ -12,6 +12,7 @@ import { Hazards } from './game/hazards.js';
 import { Hero } from './game/hero.js';
 import { Path } from './game/path.js';
 import { Projectiles } from './game/projectiles.js';
+import { EnemyShots } from './game/enemyShots.js';
 import { Towers, towerStats } from './game/towers.js';
 import { Upgrades } from './game/upgrades.js';
 import { WaveDirector } from './game/waves.js';
@@ -137,7 +138,14 @@ class Game {
     const bossIds = waves.flatMap((w) => w.boss ?? []);
     const summoned = bossIds.flatMap((id) => [...(this.characters[id]?.boss?.skills ?? []), ...(this.characters[id]?.boss?.hardSkills ?? [])].map((s) => s.enemy)).filter(Boolean);
     const enemyIds = [...new Set([...waves.flatMap((w) => (w.spawns ?? []).map((s) => s.enemy)), ...bossIds, ...summoned])];
-    for (const id of enemyIds) if (!this.characters[id]) throw new Error(`data/characters.json 沒有「${id}」`);
+    for (let i = 0; i < enemyIds.length; i++) { // 分裂出來的小怪（史萊姆）也要載入
+      const def = this.characters[enemyIds[i]];
+      if (!def) throw new Error(`data/characters.json 沒有「${enemyIds[i]}」`);
+      if (def.split && !enemyIds.includes(def.split.into)) enemyIds.push(def.split.into);
+    }
+    // 敵人丟出來的東西（飛鏢、箭、火焰彈）
+    const enemyShotModels = enemyIds.flatMap((id) => { const d = this.characters[id]; return [d.ranged?.shot, d.bomb?.shot, ...(d.boss?.skills ?? []).map((k) => k.shot)]; })
+      .map((s) => s?.model).filter((m) => m && this.assets.catalog[m]);
     for (const t of Object.values(this.towerDefs)) if (!this.characters[t.unit]) throw new Error(`data/towers.json 的「${t.unit}」不在 characters.json`);
     this.heroes = Object.keys(this.characters).filter((id) => this.characters[id].role === 'player' && this.assets.catalog[this.characters[id].model]);
 
@@ -147,12 +155,14 @@ class Game {
       ...Object.values(this.towerDefs).map((t) => this.characters[t.unit].model),
       ...enemyIds.map((id) => this.characters[id].model),
       ...shotSpecs.map((s) => s.model).filter((m) => m && this.assets.catalog[m]),
+      ...enemyShotModels,
       ...Object.values(this.levels).flatMap((l) => Level.modelIds(l)),
     ];
     await this.assets.preload(modelIds, (done, total) => this.hud.showOverlay({ text: `載入模型 ${done} / ${total}…` }));
 
     this.towers = new Towers(this, this.towerDefs);
     this.projectiles = new Projectiles(this);
+    this.enemyShots = new EnemyShots(this);
     this.hazards = new Hazards(this);
     this.setLevel(this.levelOrder[0]);
     this.heroList = new Map();
@@ -170,6 +180,7 @@ class Game {
     this.levelData = this.levels[id];
     // 路線：paths（好幾條）或 path（一條）
     this.paths = (this.levelData.paths ?? [this.levelData.path]).map((p) => new Path(p));
+    this.flightPaths = new Map();
     this.path = this.paths[0];
     this.level = new Level(this, this.levelData, this.paths);
     this.hazards.load(this.levelData.hazards);
@@ -307,6 +318,7 @@ class Game {
     this.enemies = [];
     this.towers.clear();
     this.projectiles.clear();
+    this.enemyShots.clear();
     for (const w of this.warnings) this.removeWarning(w);
     this.warnings = [];
     this.hud.hideBoss();
@@ -561,6 +573,25 @@ class Game {
     return enemy;
   }
 
+  // 飛行敵人走的直線：路的起點到終點（城門）
+  flightPath(path) {
+    if (!this.flightPaths.has(path)) {
+      const a = path.at(0), b = path.at(path.length);
+      this.flightPaths.set(path, new Path({ points: [[a.x, a.z], [b.x, b.z]], width: path.width, corner: 0 }));
+    }
+    return this.flightPaths.get(path);
+  }
+
+  // 史萊姆：倒下的地方彈出幾隻小的
+  splitEnemy(enemy) {
+    const { into, count, color } = enemy.def.split;
+    for (let i = 0; i < count; i++) {
+      const child = this.spawnEnemy(into, Math.max(0, enemy.s - 0.3 * i), (i % 2 ? 1 : -1) * 0.7, enemy.path);
+      child.summoned = enemy.summoned;
+    }
+    this.fx.burst(enemy.position.x, 0.6, enemy.position.z, 20, color ?? '#5ec8ff', 4);
+  }
+
   blockers() {
     const list = this.towers.blockers();
     if (this.hero.canBlock) list.unshift(this.hero);
@@ -569,8 +600,9 @@ class Game {
 
   nearestEnemy(position, range) {
     let best = null, bestDist = range;
+    const melee = !this.hero?.def.shot;
     for (const e of this.enemies) {
-      if (!e.canBeHit) continue;
+      if (!e.canBeHit || (melee && e.airborne)) continue; // 近戰英雄不轉向空中的飛龍
       const d = Math.hypot(e.position.x - position.x, e.position.z - position.z);
       if (d < bestDist) { best = e; bestDist = d; }
     }
@@ -638,6 +670,7 @@ class Game {
         this.fx.floatText(enemy.position.x, 2.4, enemy.position.z, `+${gold}`, GOLD_COLOR);
         this.sfx.coin();
       }
+      if (enemy.def.split) this.splitEnemy(enemy);
       if (enemy.def.boss) {
         this.hud.hideBoss();
         this.hud.banner(`擊敗${enemy.def.boss.name}！`, 2);
@@ -761,6 +794,7 @@ class Game {
       for (const e of this.enemies) e.update(dt);
       this.separateEnemies();
       this.projectiles.update(dt);
+      this.enemyShots.update(dt);
       for (const e of this.enemies) if (e.removed) e.destroy();
       this.enemies = this.enemies.filter((e) => !e.removed);
       for (const e of this.enemies) e.updateVisual(dt);
