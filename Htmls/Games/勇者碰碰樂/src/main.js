@@ -7,6 +7,7 @@ import { Save } from './save.js';
 import { Battle } from './battle.js';
 import { loadLooks, portrait } from './models.js';
 import { guidePath } from './physics.js';
+import { Scenery, THEMES } from './scenery.js';
 
 const $ = (id) => document.getElementById(id);
 const PARAMS = new URLSearchParams(location.search);
@@ -33,8 +34,11 @@ class Game {
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.5, 200);
     this.camTarget = new THREE.Vector3();
     this.camBase = new THREE.Vector3();
-    this.scene.add(new THREE.HemisphereLight(0xdfeaff, 0x55604a, 1.6));
+    this.hemi = new THREE.HemisphereLight(0xdfeaff, 0x55604a, 1.6);
+    this.scene.add(this.hemi);
+    this.scene.fog = new THREE.Fog('#b9d6ea', 40, 90);
     const sun = new THREE.DirectionalLight(0xffffff, 2.1);
+    this.sun = sun;
     sun.position.set(-6, 18, 8);
     sun.castShadow = !LOW;
     sun.shadow.mapSize.set(1024, 1024);
@@ -57,6 +61,8 @@ class Game {
     this.save = new Save(heroes);
     this.ui = new UI(this);
     this.buildBoard();
+    this.scenery = new Scenery(this);
+    this.setTheme(stages.list[0]);
     this.setupAim();
     this.resize();
     await loadLooks();
@@ -99,32 +105,74 @@ class Game {
     this.scene.add(this.guide);
   }
 
-  makeGroundTexture(color) {
+  // 場地地板：深淺格子＋小斑點（每關顏色不同）
+  makeGroundTexture(color, speck = null) {
     const c = document.createElement('canvas');
-    c.width = 256; c.height = 384;
+    c.width = 512; c.height = 768;
     const g = c.getContext('2d');
     const base = new THREE.Color(color);
     for (let y = 0; y < 12; y++) for (let x = 0; x < 8; x++) {
       const k = (x + y) % 2 ? 1 : 0.92;
       g.fillStyle = `#${base.clone().multiplyScalar(k).getHexString()}`;
-      g.fillRect(x * 32, y * 32, 32, 32);
+      g.fillRect(x * 64, y * 64, 64, 64);
     }
+    if (speck) this.specks(g, 512, 768, speck, 900, 1, 4);
     g.globalAlpha = 0.18; g.fillStyle = '#ffffff';
-    g.fillRect(0, 191, 256, 2);
+    g.fillRect(0, 382, 512, 4);
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
-    tex.magFilter = THREE.NearestFilter;
+    tex.anisotropy = 4;
     return tex;
   }
 
+  specks(g, w, h, color, n, min, max) {
+    const c = new THREE.Color(color);
+    for (let i = 0; i < n; i++) {
+      const k = 0.75 + Math.random() * 0.5;
+      g.globalAlpha = 0.25 + Math.random() * 0.35;
+      g.fillStyle = `#${c.clone().multiplyScalar(k).getHexString()}`;
+      const r = min + Math.random() * (max - min);
+      g.beginPath(); g.ellipse(Math.random() * w, Math.random() * h, r * 1.6, r, Math.random() * 3, 0, Math.PI * 2); g.fill();
+    }
+    g.globalAlpha = 1;
+  }
+
+  // 場地外面的地：斑點貼圖重複鋪
+  makeOutsideTexture(color, speck) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 256;
+    const g = c.getContext('2d');
+    g.fillStyle = color; g.fillRect(0, 0, 256, 256);
+    this.specks(g, 256, 256, speck, 260, 2, 9);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(14, 14);
+    return tex;
+  }
+
+  // 換關卡主題：地板、牆、外面的地、天空、霧、光線、布景（scenery.js 的 THEMES）
   setTheme(stage) {
-    const tex = this.makeGroundTexture(stage?.ground ?? '#7fae5a');
-    this.boardGroup.children[0].material.map = tex;
-    this.boardGroup.children[0].material.needsUpdate = true;
+    const id = stage?.theme ?? stage?.id ?? 'goblin';
+    if (this.themeId === id) return;
+    this.themeId = id;
+    const T = THEMES[id] ?? THEMES.goblin;
+    const tex = this.makeGroundTexture(stage?.ground ?? T.ground, T.speck);
+    const floor = this.boardGroup.children[0].material;
+    floor.map = tex; floor.needsUpdate = true;
     this.groundTex.dispose();
     this.groundTex = tex;
     this.wallMat.color.set(stage?.edge ?? '#6b4a2b');
-    this.outside.material.color.set(new THREE.Color(stage?.ground ?? '#7fae5a').multiplyScalar(0.55));
+    const out = this.makeOutsideTexture(T.outside, T.speck);
+    this.outside.material.map?.dispose();
+    this.outside.material.map = out;
+    this.outside.material.color.set('#ffffff');
+    this.outside.material.needsUpdate = true;
+    this.scene.background = new THREE.Color(T.sky);
+    this.scene.fog.color.set(T.fog);
+    this.hemi.color.set(T.hemi[0]); this.hemi.groundColor.set(T.hemi[1]); this.hemi.intensity = T.hemi[2];
+    this.sun.intensity = T.sun;
+    this.scenery.build(id, this.data.stages.board);
   }
 
   // 鏡頭：從斜上方看整個場地，上面留給 HUD、下面留給角色卡
@@ -302,6 +350,7 @@ class Game {
     this.time += dt;
     if (this.battle && this.state === 'battle') this.battle.update(dt);
     this.fx.update(dt, this.time);
+    this.scenery.update(this.time);
     // 畫面震動
     this.camera.position.copy(this.camBase);
     if (this.shakeA > 0.001) {

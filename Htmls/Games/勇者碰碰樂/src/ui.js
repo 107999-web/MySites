@@ -161,7 +161,22 @@ export class UI {
       box.appendChild(c);
     }
     $('hudStage').textContent = battle.stage.name;
+    this.showLegend(battle);
     this.updateHud();
+  }
+
+  // 這一關有哪些機關：右上角列出來，第一次彈出去後收起來
+  showLegend(battle) {
+    // 圖示用彩色圓點（不用 emoji，學校電腦的字型可能沒有）
+    const TEXT = {
+      pillar: ['#8a6a44', '障礙物', '撞到會反彈'], block: ['#8a90a2', battle.stage.id === 'graveyard' ? '墓碑' : '城牆', '撞到會反彈'], bumper: ['#ffcf4a', '彈跳墊', '撞到會加速彈開'],
+      spikes: ['#9aa0aa', '地刺', '經過會扣血'], poison: ['#8be04e', '毒池', '經過會扣血'], lava: ['#ff5a1a', '岩漿', '經過會扣血'],
+      pad: ['#2f8a4a', '加速板', '經過會跑更快'], ice: ['#bfe8ff', '冰面', '滑溜溜，在上面跑更遠'], curse: ['#c080ff', '詛咒陣', '經過會扣血'], portal: ['#b46bff', '黑洞', '從一個進去，同顏色的另一個出來'],
+    };
+    const keys = [...new Set(battle.obstacles.map((o) => (o.type === 'trap' ? o.look ?? 'spikes' : o.type)))];
+    const el = $('legend');
+    el.innerHTML = keys.map((k) => `<div><span class="dot" style="background:${TEXT[k][0]}"></span><b>${TEXT[k][1]}</b><small>${TEXT[k][2]}</small></div>`).join('');
+    el.hidden = !keys.length;
   }
 
   updateHud() {
@@ -187,6 +202,7 @@ export class UI {
     sp.disabled = Boolean(b.special);
     if (cur) sp.innerHTML = b.special ? `${cur.def.special.name} 準備好了！` : `必殺技 <b>${cur.def.special.name}</b><small>${cur.def.special.text}</small>`;
     $('hint').hidden = b.state !== 'aim' || b.turn > 2;
+    if (b.turn >= 1) $('legend').hidden = true;
   }
 
   unitLabel(u) {

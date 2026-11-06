@@ -148,3 +148,11 @@ button:active { transform: translateY(2px); }
 /* 金幣圖示（不用 emoji，學校電腦的字型可能沒有） */
 i.coin { display: inline-block; width: 0.95em; height: 0.95em; margin-right: 0.25em; vertical-align: -0.12em; border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fff6b0 0 18%, #ffd23a 40%, #d99a12 100%); box-shadow: inset 0 0 0 0.09em #b97a0a; }
+
+/* 機關說明（每關開始時） */
+#legend { position: absolute; top: 58px; right: 10px; display: grid; gap: 5px; background: #000a; border-radius: 14px; padding: 8px 12px; pointer-events: none; max-width: 270px; animation: fadein 0.4s; }
+#legend div { display: grid; grid-template-columns: 22px auto 1fr; gap: 6px; align-items: center; font-size: 14px; }
+#legend small { color: #cdd; font-size: 12px; }
+@keyframes fadein { from { opacity: 0; transform: translateY(-6px); } }
+@media (max-width: 520px) { #legend { top: auto; bottom: 168px; left: 10px; right: 10px; max-width: none; } }
+#legend .dot { width: 16px; height: 16px; border-radius: 50%; box-shadow: 0 0 0 2px #fff6 inset; }

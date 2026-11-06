@@ -594,6 +594,153 @@
       "source": "02_模型/道具/金幣.glb",
       "sourceSize": 38418340,
       "sourceTime": 1793599658301
+    },
+    "人型_咕嚕_白": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95_%E7%99%BD/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95_%E7%99%BD.glb",
+      "kind": "character",
+      "tris": 13804,
+      "sizeBytes": 5818388,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "02_模型/敵人/人型/人型_咕嚕_白.zip",
+      "sourceSize": 35652340,
+      "sourceTime": 1793848489785
+    },
+    "人型_咕嚕_綠": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95_%E7%B6%A0/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95_%E7%B6%A0.glb",
+      "kind": "character",
+      "tris": 13756,
+      "sizeBytes": 6167184,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "02_模型/敵人/人型/人型_咕嚕_綠.zip",
+      "sourceSize": 39612078,
+      "sourceTime": 1793848582161
+    },
+    "人型_咕嚕王": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95%E7%8E%8B/%E4%BA%BA%E5%9E%8B_%E5%92%95%E5%9A%95%E7%8E%8B.glb",
+      "kind": "character",
+      "tris": 13884,
+      "sizeBytes": 6376184,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "02_模型/敵人/人型/人型_咕嚕王.zip",
+      "sourceSize": 39590943,
+      "sourceTime": 1793848675635
+    },
+    "人型_哥布林-3": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-3/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-3.glb",
+      "kind": "character",
+      "tris": 13760,
+      "sizeBytes": 5452088,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "02_模型/敵人/人型/人型_哥布林-3.zip",
+      "sourceSize": 39145975,
+      "sourceTime": 1793849048217
+    },
+    "人型_哥布林-4": {
+      "file": "assets/models/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-4/%E4%BA%BA%E5%9E%8B_%E5%93%A5%E5%B8%83%E6%9E%97-4.glb",
+      "kind": "character",
+      "tris": 16486,
+      "sizeBytes": 3548844,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "02_模型/敵人/人型/人型_哥布林-4.zip",
+      "sourceSize": 86008538,
+      "sourceTime": 1793870900995
+    },
+    "山豬半獸人": {
+      "file": "assets/models/%E5%B1%B1%E8%B1%AC%E5%8D%8A%E7%8D%B8%E4%BA%BA/%E5%B1%B1%E8%B1%AC%E5%8D%8A%E7%8D%B8%E4%BA%BA.glb",
+      "kind": "character",
+      "tris": 13706,
+      "sizeBytes": 4051984,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Run",
+        "Jump",
+        "Attack",
+        "Wave",
+        "Hit",
+        "Death"
+      ],
+      "source": "02_模型/敵人/人型/山豬半獸人.zip",
+      "sourceSize": 46322233,
+      "sourceTime": 1793602143225
+    },
+    "獸型_黑貓": {
+      "file": "assets/models/%E7%8D%B8%E5%9E%8B_%E9%BB%91%E8%B2%93/%E7%8D%B8%E5%9E%8B_%E9%BB%91%E8%B2%93.glb",
+      "kind": "character",
+      "tris": 13886,
+      "sizeBytes": 4282828,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death"
+      ],
+      "source": "02_模型/敵人/獸型/獸型_黑貓.zip",
+      "sourceSize": 36616236,
+      "sourceTime": 1793845919777
+    },
+    "特殊_綠龍2": {
+      "file": "assets/models/%E7%89%B9%E6%AE%8A_%E7%B6%A0%E9%BE%8D2/%E7%89%B9%E6%AE%8A_%E7%B6%A0%E9%BE%8D2.glb",
+      "kind": "character",
+      "tris": 13920,
+      "sizeBytes": 5359392,
+      "clips": [
+        "Idle",
+        "Walk",
+        "Attack",
+        "Hit",
+        "Death",
+        "Fly"
+      ],
+      "source": "02_模型/敵人/特殊型/特殊_綠龍2.zip",
+      "sourceSize": 41984136,
+      "sourceTime": 1793848394153
     }
   }
 }

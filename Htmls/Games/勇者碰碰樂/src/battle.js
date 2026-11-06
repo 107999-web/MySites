@@ -1,7 +1,8 @@
 // 一場戰鬥：我方最多 5 位輪流彈射 → 碰到隊友發動協力技 → 敵人倒數到 0 就攻擊 → 打完一波換下一波，最後一波是 Boss。
 import * as THREE from 'three';
 import { makeActor, makeProp, loadGltf } from './models.js';
-import { stepBall, simulate, MAX_SPEED } from './physics.js';
+import { stepBall, simulate, prepareBall, MAX_SPEED } from './physics.js';
+import { makeObstacle, animateObstacle, PORTAL_COLORS } from './scenery.js';
 
 const HERO_R = 0.6;
 const HERO_H = 2.2;
@@ -20,6 +21,7 @@ export class Battle {
     this.heroes = [];
     this.enemies = [];
     this.items = [];
+    this.obstacles = [];
     this.wave = 0;
     this.turn = 0;
     this.turnIndex = 0;
@@ -28,7 +30,7 @@ export class Battle {
     this.state = 'loading';
     this.timers = [];
     this.ball = null;
-    this.log = { hits: 0, assists: 0, specials: 0, enemyAttacks: {} };
+    this.log = { hits: 0, assists: 0, specials: 0, enemyAttacks: {}, obstacles: {} };
   }
 
   get fx() { return this.game.fx; }
@@ -42,6 +44,7 @@ export class Battle {
     for (const n of [...enemyNames]) for (const a of g.data.enemies.list[n].attacks ?? []) if (a.minion) enemyNames.add(a.minion);
     await Promise.all([...heroDefs.map((d) => d.model), ...[...enemyNames].map((n) => g.data.enemies.list[n].model)].map((m) => loadGltf(m))); // 先下載這關會用到的模型
     this.heartPrefab = await makeProp('紅藥水', 0.9);
+    this.buildObstacles();
     // 我方排在下面一排
     const n = heroDefs.length, gap = Math.min(2.4, (this.board.w - 2) / n);
     for (let i = 0; i < n; i++) {
@@ -69,6 +72,21 @@ export class Battle {
     this.state = 'ready';
   }
 
+  // 場地上的機關（stages.json 的 obstacles）。傳送點用 pair 配對：同一個 pair 的兩個互通
+  buildObstacles() {
+    const theme = this.stage.theme ?? this.stage.id;
+    this.obstacles = (this.stage.obstacles ?? []).map((o) => ({ ...o }));
+    const pairs = new Map();
+    for (const o of this.obstacles) {
+      if (o.type === 'portal') { const list = pairs.get(o.pair ?? 0) ?? []; list.push(o); pairs.set(o.pair ?? 0, list); }
+    }
+    for (const [, list] of pairs) if (list.length === 2) { list[0].to = list[1]; list[1].to = list[0]; }
+    for (const o of this.obstacles) {
+      o.mesh = makeObstacle(o, theme);
+      this.game.scene.add(o.mesh);
+    }
+  }
+
   async spawnWave(i, drop = true) {
     this.wave = i;
     const list = this.stage.waves[i];
@@ -79,10 +97,12 @@ export class Battle {
   async spawnEnemy(name, x, z, drop = true) {
     const def = this.game.data.enemies.list[name];
     const actor = await makeActor(def.model, def.height * ENEMY_SCALE);
+    if (def.tint) { const t = new THREE.Color(def.tint); for (const m of actor.materials) m.color?.multiply(t); } // 同一個模型做成不同的敵人（冰龍、黑暗騎士）
     const e = {
       kind: 'enemy', name, def, actor, alive: true, r: def.radius, x, z,
-      maxHp: def.hp, hp: def.hp, every: def.every, cd: def.every + (this.enemies.length % 2), next: 0, burn: null,
+      maxHp: Math.round(def.hp * (this.stage.hpScale ?? 1)), every: def.every, cd: def.every + (this.enemies.length % 2), next: 0, burn: null,
     };
+    e.hp = e.maxHp; // 關卡可以調整敵人血量（stages.json 的 hpScale）
     if (def.boss) e.cd = def.every;
     actor.root.position.set(x, drop ? 8 : 0, z);
     actor.root.rotation.y = Math.atan2(0 - x, 6 - z);
@@ -194,7 +214,7 @@ export class Battle {
     const len = Math.hypot(dx, dz) || 1;
     const sp = this.special;
     const speed = MAX_SPEED * Math.max(0.15, Math.min(1, power)) * (h.def.power ?? 1) * (sp?.speed ?? 1);
-    this.ball = { hero: h, x: h.x, z: h.z, vx: (dx / len) * speed, vz: (dz / len) * speed, r: h.r, pierce: h.def.type === 'pierce', inside: new Set(), touched: new Set(), mult: sp?.mult ?? 1 };
+    this.ball = prepareBall({ hero: h, x: h.x, z: h.z, vx: (dx / len) * speed, vz: (dz / len) * speed, r: h.r, pierce: h.def.type === 'pierce', inside: new Set(), touched: new Set(), mult: sp?.mult ?? 1 }, this.obstacles);
     this.pending = [];
     this.state = 'moving';
     this.sfx.swing();
@@ -204,7 +224,7 @@ export class Battle {
   }
 
   world() {
-    return { w: this.board.w, d: this.board.d, enemies: this.enemies, allies: this.heroes.filter((x) => x !== this.ball?.hero), items: this.items };
+    return { w: this.board.w, d: this.board.d, enemies: this.enemies, allies: this.heroes.filter((x) => x !== this.ball?.hero), items: this.items, obstacles: this.obstacles };
   }
 
   // 機器人用：試射某個角度會撞幾下
@@ -214,7 +234,7 @@ export class Battle {
     const speed = MAX_SPEED * power * (h.def.power ?? 1);
     const others = this.heroes.filter((x) => x !== h);
     return simulate({ x: h.x, z: h.z, vx: Math.sin(angle) * speed, vz: Math.cos(angle) * speed, r: h.r, pierce: h.def.type === 'pierce' },
-      { w: this.board.w, d: this.board.d, enemies: this.enemies, allies: others, items: this.items });
+      { w: this.board.w, d: this.board.d, enemies: this.enemies, allies: others, items: this.items, obstacles: this.obstacles });
   }
 
   updateBall(dt) {
@@ -226,6 +246,7 @@ export class Battle {
       else if (ev.type === 'wall') { this.fx.sparks(ev.x, ev.z, 0xffffff, 4, 0.5); this.game.shake(0.05); }
       else if (ev.type === 'ally') this.pending.push(this.assist(ev.target));
       else if (ev.type === 'item') this.pickup(h, ev.target);
+      else this.onObstacle(h, ev);
     }
     h.x = b.x; h.z = b.z;
     h.actor.root.position.set(b.x, 0, b.z);
@@ -233,9 +254,53 @@ export class Battle {
     if (!moving) {
       this.ball = null;
       this.state = 'resolve';
-      h.actor.play('Idle');
+      if (h.alive) h.actor.play('Idle'); // 被陷阱打倒的不要站起來
       if (this.special) { h.actor.setGlow(0x000000, 0); this.special = false; }
       Promise.all(this.pending).then(() => this.wait(0.25)).then(() => { const f = this.onStop; this.onStop = null; f?.(); });
+    }
+  }
+
+  // 碰到機關
+  onObstacle(h, ev) {
+    const o = ev.target;
+    this.log.obstacles[ev.type] = (this.log.obstacles[ev.type] ?? 0) + 1;
+    switch (ev.type) {
+      case 'pillar':
+      case 'block':
+        this.fx.sparks(ev.x, ev.z, 0xffffff, 5, 0.6);
+        this.game.shake(0.06);
+        this.sfx.hit();
+        break;
+      case 'bumper':
+        o.pulseT = 0.25;
+        this.fx.ring(o.x, o.z, o.r + 1.2, 0xffcf4a, 0.3);
+        this.fx.sparks(ev.x, ev.z, 0xffd04a, 8, 0.6);
+        this.sfx.pickup();
+        this.game.shake(0.1);
+        break;
+      case 'trap':
+        this.fx.ring(ev.x, ev.z, 1.2, o.look === 'poison' ? 0x8be04e : o.look === 'lava' ? 0xff5a1a : 0xff3030, 0.35);
+        this.fx.number(h.x, HERO_H + 0.8, h.z, o.look === 'poison' ? '中毒！' : o.look === 'lava' ? '好燙！' : '被刺到！', 'hurt');
+        this.damageHero(h, o.damage ?? 10);
+        if (!h.alive && this.ball) { this.ball.vx = 0; this.ball.vz = 0; } // 倒下就停住
+        break;
+      case 'pad':
+        this.fx.ring(o.x, o.z, o.r + 0.8, 0x5af0ff, 0.35);
+        this.fx.number(h.x, HERO_H + 0.8, h.z, '加速！', 'skill');
+        this.sfx.wave();
+        break;
+      case 'ice':
+        this.fx.sparks(ev.x, ev.z, 0xdff6ff, 8, 0.3);
+        this.fx.number(h.x, HERO_H + 0.8, h.z, '滑溜溜！', 'skill');
+        break;
+      case 'portal': {
+        const c = new THREE.Color(PORTAL_COLORS[o.pair ?? 0]);
+        this.fx.ring(o.x, o.z, o.r + 1, c, 0.4);
+        this.fx.ring(o.to.x, o.to.z, o.r + 1.4, c, 0.5);
+        this.sfx.tone(300, 900, 0.25, 'sine', 0.14);
+        break;
+      }
+      default: break;
     }
   }
 
@@ -476,6 +541,7 @@ export class Battle {
   async enemyAttack(e, atk) {
     const heroes = this.aliveHeroes();
     const color = new THREE.Color(atk.color ?? '#ff3030');
+    const dmg = Math.round((atk.damage ?? 0) * (this.stage.damageScale ?? 1)); // 關卡可以調整敵人傷害（stages.json 的 damageScale）
     this.log.enemyAttacks[atk.type] = (this.log.enemyAttacks[atk.type] ?? 0) + 1;
     const nearest = () => heroes.reduce((m, h) => ((h.x - e.x) ** 2 + (h.z - e.z) ** 2 < (m.x - e.x) ** 2 + (m.z - e.z) ** 2 ? h : m));
     const pick = () => heroes[Math.floor(Math.random() * heroes.length)];
@@ -488,7 +554,7 @@ export class Battle {
         e.actor.play('Attack', { once: true, after: this.idleOf(e) });
         await this.wait(0.5);
         this.fx.sparks(h.x, h.z, 0xff6060, 10);
-        this.damageHero(h, atk.damage);
+        this.damageHero(h, dmg);
         break;
       }
       case 'shot': {
@@ -498,7 +564,7 @@ export class Battle {
         this.fx.disk(h.x, h.z, 0.9, color, 0.35);
         await this.wait(0.3);
         await this.fx.projectile({ x: e.x, y: e.def.height * ENEMY_SCALE * 0.6, z: e.z }, { x: h.x, y: 1, z: h.z }, { look: atk.look ?? null, color, speed: 18, arc: 1 });
-        if (h.alive) this.damageHero(h, atk.damage);
+        if (h.alive) this.damageHero(h, dmg);
         break;
       }
       case 'quake': {
@@ -508,7 +574,7 @@ export class Battle {
         this.fx.ring(e.x, e.z, atk.radius, 0xffa060, 0.45);
         this.game.shake(0.35);
         this.sfx.blast();
-        for (const h of this.aliveHeroes()) if (Math.hypot(h.x - e.x, h.z - e.z) < atk.radius + h.r) this.damageHero(h, atk.damage);
+        for (const h of this.aliveHeroes()) if (Math.hypot(h.x - e.x, h.z - e.z) < atk.radius + h.r) this.damageHero(h, dmg);
         break;
       }
       case 'beam':
@@ -528,7 +594,7 @@ export class Battle {
         this.sfx.blast();
         for (const o of this.aliveHeroes()) {
           const t = (o.x - e.x) * ux + (o.z - e.z) * uz;
-          if (t > 0 && Math.abs((o.x - e.x) * uz - (o.z - e.z) * ux) < atk.width / 2 + o.r) this.damageHero(o, atk.damage);
+          if (t > 0 && Math.abs((o.x - e.x) * uz - (o.z - e.z) * ux) < atk.width / 2 + o.r) this.damageHero(o, dmg);
         }
         await this.wait(0.4);
         break;
@@ -539,7 +605,7 @@ export class Battle {
         await this.wait(0.5);
         this.game.shake(0.4);
         this.sfx.blast();
-        for (const h of this.aliveHeroes()) { this.fx.ring(h.x, h.z, 1.4, color, 0.4); this.damageHero(h, atk.damage); }
+        for (const h of this.aliveHeroes()) { this.fx.ring(h.x, h.z, 1.4, color, 0.4); this.damageHero(h, dmg); }
         break;
       }
       case 'heal': {
@@ -573,6 +639,7 @@ export class Battle {
   freeSpots(n) {
     const out = [];
     const taken = [...this.aliveEnemies(), ...this.aliveHeroes()].map((u) => [u.x, u.z, u.r]);
+    for (const o of this.obstacles) taken.push([o.x, o.z, o.r ?? Math.max(o.w, o.d) / 2]);
     for (let tries = 0; tries < 200 && out.length < n; tries++) {
       const x = (Math.random() - 0.5) * (this.board.w - 3), z = -this.board.d / 2 + 2 + Math.random() * (this.board.d * 0.5);
       if (taken.every(([tx, tz, tr]) => Math.hypot(tx - x, tz - z) > tr + 1.2)) { out.push([x, z]); taken.push([x, z, 0.8]); }
@@ -589,12 +656,14 @@ export class Battle {
       if (h.ring) { const cur = this.state === 'aim' && h === this.current(); h.ring.material.opacity = cur ? 0.6 + 0.4 * Math.sin(this.game.time * 6) : 0.5; h.ring.scale.setScalar(cur ? 1.25 : 1); }
     }
     for (const e of this.enemies) e.actor.update(dt);
+    for (const o of this.obstacles) animateObstacle(o, this.game.time, dt);
     for (const it of this.items) if (!it.taken) { it.mesh.rotation.y += dt * 2; it.mesh.position.y = 0.15 + Math.sin(this.game.time * 3 + it.x) * 0.12; }
   }
 
   dispose() {
     for (const u of [...this.heroes, ...this.enemies]) this.game.scene.remove(u.actor.root);
     for (const it of this.items) this.game.scene.remove(it.mesh);
+    for (const o of this.obstacles) this.game.scene.remove(o.mesh);
     this.timers = [];
   }
 }

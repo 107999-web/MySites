@@ -37,7 +37,7 @@
       "id": "皇家騎士", "name": "皇家騎士", "model": "角色_皇家騎士", "type": "bounce", "color": "#ffd94a",
       "hp": 170, "atk": 17, "power": 0.85, "charge": 4, "unlock": "stage:graveyard",
       "desc": "生命最多，碰到他會幫全隊補血。",
-      "assist": { "name": "守護之光", "kind": "heal", "pct": 0.12 },
+      "assist": { "name": "守護之光", "kind": "heal", "pct": 0.09 },
       "special": { "name": "聖光", "kind": "heal", "pct": 0.4, "text": "全隊回復 40% 生命" }
     },
     {
